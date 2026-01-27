@@ -41,17 +41,17 @@ class Simulation {
     // DEFINING INITIAL STATE
     state_.H = (par_.C * prey) + (par_.B * pred) - ((par_.D * std::log(prey)) + (par_.A * std::log(pred)));
 
-    evolution_.push_back(State{prey, pred, state_.H});
+    evolution_.push_back(State{prey, pred, state_.H}); // vettore che contiene gli stati del sistema messi in ordine cronologico 
 
     // SWITCHING TO RELATIVE COORDINATES FOR COMPUTATIONS
     state_.prey = prey * par_.C / par_.D;
     state_.predator = pred * par_.B / par_.A;
   }
-
+// sono le funzioni che preparano la simulazione
   static Simulation set_simulation();
 
   static Simulation set_simulation(std::string const& file_name);
-
+// funzioni per controllare la validità dei parametri
   static Parameters const& is_good(Parameters const& p);
 
   static double is_good(double val);

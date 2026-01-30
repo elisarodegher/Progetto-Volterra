@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22)
 project(volterra VERSION 0.1.0)
 
 include(CTest)
@@ -28,17 +28,17 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined")
 
 find_package(Gnuplot REQUIRED)
 
-add_executable(sigma sigma.main.cpp project.lv.cpp)
-add_executable(alpha alpha.main.cpp project.lv.cpp)
-add_executable(beta beta.main.cpp project.lv.cpp)
+add_executable(sigma sigma.main.cpp simulation.cpp)
+add_executable(alpha alpha.main.cpp simulation.cpp)
+add_executable(beta beta.main.cpp simulation.cpp)
 
 # il testing e' abilitato di default
 # per disabilitarlo, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile progetto.t
-  add_executable(project.t project.test.cpp project.lv.cpp)
+  add_executable(simulation.test simulation.test.cpp simulation.cpp)
   # aggiungi l'eseguibile progetto.t alla lista dei test
-  add_test(NAME project.t COMMAND project.t)
+  add_test(NAME simulation.test COMMAND simulation.test)
 
 endif()

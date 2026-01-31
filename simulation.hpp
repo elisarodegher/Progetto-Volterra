@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-namespace lv {
+namespace volterra {
 
 struct Parameters {  // contiene i parametri (coefficienti) della simulazione.
   double A;          // prey birth rate
@@ -104,15 +104,9 @@ class Simulation {
 
   // funzioni di presentazione dei risultati
 
-  void show_evolution(int p) const;
-
   void save_evolution(int p, std::string const& name) const;
 
-  void show_trajectory() const;
-
   void save_trajectory(std::string const& file_name) const;
-
-  void show_statistics(int p);
 
   void save_statistics(int p, std::string const& name);
 };
@@ -131,5 +125,5 @@ bool comp_pred(State const& a, State const& b);
 
 bool read(std::ifstream& in, std::string& str, char const delimiter);
 
-}  // namespace lv
+}  // namespace volterra
 #endif

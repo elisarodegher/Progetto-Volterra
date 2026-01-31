@@ -28,9 +28,7 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined")
 
 find_package(Gnuplot REQUIRED)
 
-add_executable(sigma sigma.main.cpp simulation.cpp)
-add_executable(alpha alpha.main.cpp simulation.cpp)
-add_executable(beta beta.main.cpp simulation.cpp)
+add_executable(main main.cpp simulation.cpp)
 
 # il testing e' abilitato di default
 # per disabilitarlo, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione

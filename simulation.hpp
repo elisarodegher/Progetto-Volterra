@@ -1,5 +1,5 @@
-#ifndef LV_PROJECT_HPP
-#define LV_PROJECT_HPP
+#ifndef SIMULATION_HPP
+#define SIMULATION_HPP
 
 #include <cmath>
 #include <iostream>

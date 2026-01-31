@@ -104,11 +104,11 @@ class Simulation {
 
   // funzioni di presentazione dei risultati
 
-  void save_evolution(int p, std::string const& name) const;
+  void save_evolution(std::string const& name) const;
 
   void save_trajectory(std::string const& file_name) const;
 
-  void save_statistics(int p, std::string const& name);
+  void save_statistics(std::string const& name);
 };
 
 // Definizione di operatori

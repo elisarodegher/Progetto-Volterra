@@ -4,111 +4,60 @@
 #include <cassert>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <limits>
 #include <numeric>
 
+#include "simulation.hpp"
+
 namespace volterra {
-Simulation Simulation::set_simulation() {
-  try {
-    static std::string comm_list{
-        "LIST OF VALID COMMANDS\n"
-        "parameters:\n"
-        "- set prey birth rate [a VAL]\n"
-        "- set prey death rate [b VAL]\n"
-        "- set predator birth rate [c VAL]\n"
-        "- set predator death rate [d VAL]\n"
-        "populations\n"
-        "- set prey [prey VAL]\n"
-        "- set predator [predator VAL]\n"
-        "evolution\n"
-        "- set discretization fineness [t VAL]\n"
-        "- set number of iterations [n VAL]\n"
-        "- quit simulation setting[q]\n"
-        "- help [h]\n"};
 
-    Parameters p{};
-    double prey{};
-    double pred{};
-    double dt{};
-    double n{};
+// INIZIALIZZAZIONE DI UNA SIMULAZIONE
 
-    std::string opt;
+volterra::Simulation volterra::Simulation::set_simulation() {
+  Parameters p{};
+  double prey{}, predator{}, dt{};
+  std::size_t n{};  // <-- std::size_t per il numero di iterazioni
 
-    std::vector<std::string> control{"a",    "b",        "c", "d",
-                                     "prey", "predator", "t", "n"};
-
-    std::cout << comm_list;
-
-    while (control !=
-           std::vector<std::string>{"1", "1", "1", "1", "1", "1", "1", "1"}) {
-      std::cin >> opt;
-
-      if (opt == "a" && std::cin >> p.A) {  // PREY BIRTH RATE SETTING
-        control[0] = "1";
-
-      } else if (opt == "b" && std::cin >> p.B) {  // PREY DEATH RATE SETTING
-        control[1] = "1";
-
-      } else if (opt == "c" &&
-                 std::cin >> p.C) {  // PREDATOR BIRTH RATE SETTING
-        control[2] = "1";
-
-      } else if (opt == "d" &&
-                 std::cin >> p.D) {  // PREDATOR DEATH RATE SETTING
-        control[3] = "1";
-
-      } else if (opt == "prey" &&
-                 std::cin >> prey) {  // PREY INITIAL POPULATION SETTING
-        control[4] = "1";
-
-      } else if (opt == "predator" &&
-                 std::cin >> pred) {  // PREDATOR INITIAL POPULATION SETTING
-        control[5] = "1";
-
-      } else if (opt == "t" && std::cin >> dt) {  // DISCRETIZATION SETTING
-        control[6] = "1";
-
-      } else if (opt == "n" && std::cin >> n) {  // #ITERATIONS SETTING
-        control[7] = "1";
-
-      } else if (opt == "q") {  // WARNS INITIALIZATION INCOMPLETENESS
-        std::cout << "WARNING - Initialization incomplete.\nMissing:\n";
-
-        for (auto const& ins : control) {
-          if (ins != "1") {
-            std::cout << ins << '\n';
-          }
-        }
-
-        std::cout << "Object construction will fail.\n"
-                  << "Confirm quitting? [ y / * ]\n";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cin >> opt;
-
-        if (opt == "y") {
-          throw std::invalid_argument{"Unspecified initial conditions."};
-        } else {
-          std::cout << "Continue setting\n";
-        }
-      } else if (opt == "h") {
-        std::cout << comm_list;
-      } else {
-        std::cerr << "Bad format, insert a new command\n";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      }
+  // Funzione helper per leggere un double sicuro
+  auto read_double = [](const std::string& prompt) -> double {
+    double val;
+    while (true) {
+      std::cout << prompt;
+      if (std::cin >> val) break;
+      std::cout << "Input non valido, riprova.\n";
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
+    return val;
+  };
 
-    return Simulation{is_good(p), is_good(prey), is_good(pred), dt_good(dt),
-                      it_good(n)};
+  // Funzione helper per leggere un size_t sicuro
+  auto read_size_t = [](const std::string& prompt) -> std::size_t {
+    std::size_t val;
+    while (true) {
+      std::cout << prompt;
+      if (std::cin >> val) break;
+      std::cout << "Input non valido, riprova.\n";
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    return val;
+  };
 
-  } catch (const std::invalid_argument& e) {
-    throw std::invalid_argument{e.what()};
-  } catch (const std::runtime_error& e) {
-    throw std::runtime_error{e.what()};
-  } catch (...) {
-    throw std::runtime_error{"Caught unknown exception during initialization"};
-  }
+  // Chiediamo i parametri uno per uno
+  p.A = read_double("Inserisci tasso di natalità prede (A): ");
+  p.B = read_double("Inserisci tasso di mortalità prede (B): ");
+  p.C = read_double("Inserisci tasso di natalità predatori (C): ");
+  p.D = read_double("Inserisci tasso di mortalità predatori (D): ");
+
+  prey = read_double("Inserisci numero iniziale di prede: ");
+  predator = read_double("Inserisci numero iniziale di predatori: ");
+  dt = read_double("Inserisci passo di discretizzazione (dt): ");
+  n = read_size_t("Inserisci numero di iterazioni: ");
+
+  // Chiamata corretta al costruttore con ordine e tipi esatti
+  return Simulation(p, prey, predator, dt, n);
 }
 
 // FUNZIONI DI CONTROLLO
@@ -166,7 +115,8 @@ void Simulation::evolve() {
 
   if (!(state_.prey > 0) || !(state_.predator > 0)) {
     state_ = State{x_rel, y_rel, evolution_.back().H};
-    throw std::runtime_error{"Ecosistem has reached extinction\n"};
+    throw std::runtime_error{
+        "Simulation is over: one species has reached extinction\n"};
   } else {
     evolution_.push_back(State{state_.prey * par_.D / par_.C,
                                state_.predator * par_.A / par_.B, state_.H});
@@ -221,7 +171,7 @@ void Simulation::statistics() {
 }
 
 // SALVA L'EVOLUZIONE IN UN FILE
-void Simulation::save_evolution(int p, std::string const& name) const {
+void Simulation::save_evolution(std::string const& name) const {
   if (evolution_.size() < 2) {
     std::cerr << "No evolution to display.";
   } else {
@@ -231,8 +181,7 @@ void Simulation::save_evolution(int p, std::string const& name) const {
     }
     outfile << "prey\tpredator\tH\n";
     for (auto const& s : evolution_) {
-      outfile << std::setprecision(p) << s.prey << '\t' << std::setprecision(p)
-              << s.predator << '\t' << std::setprecision(p) << s.H << '\n';
+      outfile << s.prey << '\t' << s.predator << '\t' << s.H << '\n';
     }
     std::cout << "Evolution saved in " << name << ".evolution.csv\n";
   }
@@ -297,32 +246,29 @@ void Simulation::save_trajectory(std::string const& name) const {
 
 // SALVA LE STATISTICHE IN UN FILE
 
-void Simulation::save_statistics(int p, std::string const& name) {
+void Simulation::save_statistics(std::string const& name) {
   if (evolution_.size() < 2) {
     std::cerr << "Not enough data for statistics.\n";
   } else {
     this->statistics();
+
     std::ofstream outfile{name + ".statistics.txt"};
     if (!outfile) {
       throw std::runtime_error{"Impossible to open output file"};
     }
-    outfile << "PREY\' STATISTICS\n"
-            << "- mean: " << std::setprecision(p) << prey_stat_.mean << "\n"
-            << "- \u03C3: " << std::setprecision(p) << prey_stat_.sigma << '\n'
-            << "- maximum: " << std::setprecision(p) << prey_stat_.maximum
-            << '\n'
-            << "- minimum: " << std::setprecision(p) << prey_stat_.minimum
-            << '\n'
-            << "PREDATOR\' STATISTICS\n"
-            << "- mean: " << std::setprecision(p) << pred_stat_.mean << "\n"
-            << "- \u03C3: " << std::setprecision(p) << pred_stat_.sigma << '\n'
-            << "- maximum: " << std::setprecision(p) << pred_stat_.maximum
-            << '\n'
-            << "- minimum: " << std::setprecision(p) << pred_stat_.minimum
-            << '\n';
+
+    outfile << "PREY' STATISTICS\n"
+            << "- mean: " << prey_stat_.mean << "\n"
+            << "- σ: " << prey_stat_.sigma << '\n'
+            << "- maximum: " << prey_stat_.maximum << '\n'
+            << "- minimum: " << prey_stat_.minimum << '\n'
+            << "PREDATOR' STATISTICS\n"
+            << "- mean: " << pred_stat_.mean << "\n"
+            << "- σ: " << pred_stat_.sigma << '\n'
+            << "- maximum: " << pred_stat_.maximum << '\n'
+            << "- minimum: " << pred_stat_.minimum << '\n';
 
     std::ofstream data_file{".tmp.csv"};  // PREPARE DATA TO PLOT
-
     if (!data_file) {
       throw std::runtime_error{"Impossible to open temporary data file"};
     }
@@ -337,14 +283,13 @@ void Simulation::save_statistics(int p, std::string const& name) {
     data_file.flush();
 
     std::ofstream gp_script{".tmp.gp"};
-
     if (!gp_script) {
       throw std::runtime_error{"Impossible to open gnuplot script"};
     }
+
     gp_script
         << "set terminal svg size 800,600 font 'Arial,10' background 'white'\n"
         << "set output '" << name << ".statistics.svg'\n"
-
         << "set multiplot layout 2,1\n"
 
         << "set title 'POPULATIONS'\n"
@@ -356,9 +301,9 @@ void Simulation::save_statistics(int p, std::string const& name) {
         << (std::fmax(prey_stat_.maximum, pred_stat_.maximum) * 1.05) << "]\n"
         << "plot '.tmp.csv' using 1:2 with linespoints pointtype 6 pointsize 0 "
            "lc "
-        << "rgb 'red' title 'prey', \\\n"
+           "rgb 'red' title 'prey', \\\n"
         << "'.tmp.csv' using 1:3 with linespoints pointtype 6 pointsize 0 lc "
-        << "rgb 'blue' title 'predator'\n"
+           "rgb 'blue' title 'predator'\n"
 
         << "set title 'H(t)'\n"
         << "set xlabel 'time'\n"
@@ -379,7 +324,7 @@ void Simulation::save_statistics(int p, std::string const& name) {
         << "]\n"
         << "plot '.tmp.csv' using 1:4 with linespoints pointtype 6 pointsize 0 "
            "lc "
-        << "rgb 'green' title 'H(t)'\n"
+           "rgb 'green' title 'H(t)'\n"
 
         << "unset multiplot";
 
@@ -429,4 +374,4 @@ bool read(std::ifstream& in, std::string& str, char const delimiter) {
   }
   return false;
 }
-}  // namespace lv
+}  // namespace volterra

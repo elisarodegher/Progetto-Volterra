@@ -1,32 +1,33 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "simulation.hpp"
+
 #include "doctest.h"
 
 TEST_CASE("Testing constructors' throws") {
   SUBCASE("Testing null parameter throws") {
-    CHECK_THROWS(
-        volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200., 0.00042, 4200.));
+    CHECK_THROWS(volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200.,
+                                      0.00042, 4200.));
   }
 
   SUBCASE("Testing negative parameter throws") {
-    CHECK_THROWS(
-        volterra::Simulation({42., 42., -42., 42.42}, 4200., 4200., 0.00042, 4200.));
+    CHECK_THROWS(volterra::Simulation({42., 42., -42., 42.42}, 4200., 4200.,
+                                      0.00042, 4200.));
   }
 
   SUBCASE("Testing negative population throws") {
-    CHECK_THROWS(
-        volterra::Simulation({42., 42., 42., 42.42}, -4200., 4200., 0.00042, 4200.));
+    CHECK_THROWS(volterra::Simulation({42., 42., 42., 42.42}, -4200., 4200.,
+                                      0.00042, 4200.));
   }
 
   SUBCASE("Testing negative time increment throws") {
-    CHECK_THROWS(
-        volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200., -0.00042, 4200.));
+    CHECK_THROWS(volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200.,
+                                      -0.00042, 4200.));
   }
 
   SUBCASE("Testing negative iterations throws") {
-    CHECK_THROWS(
-        volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200., 0.00042, -4200.));
+    CHECK_THROWS(volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200.,
+                                      0.00042, -4200.));
   }
 }
 

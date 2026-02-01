@@ -10,7 +10,30 @@
 
 namespace volterra {
 
+// ------------------- OPERATORI -------------------
+
+bool operator==(Parameters const& a, Parameters const& b) {
+  return a.A == b.A && a.B == b.B && a.C == b.C && a.D == b.D;
+}
+
+bool operator==(State const& a, State const& b) {
+  return a.prey == b.prey && a.predator == b.predator;
+}
+
 // ------------------- FUNZIONI LIBERE -------------------
+
+bool comp_prey(State const& a, State const& b) { return a.prey < b.prey; }
+bool comp_pred(State const& a, State const& b) {
+  return a.predator < b.predator;
+}
+
+bool read(std::ifstream& in, std::string& str, char const delimiter) {
+  while (std::getline(in, str, delimiter)) {
+    if (str.empty() || str[0] == '#') continue;
+    return true;
+  }
+  return false;
+}
 
 double read_double(const std::string& input) {
   double val;
@@ -21,13 +44,16 @@ double read_double(const std::string& input) {
   return val;
 }
 
-std::size_t read_size_t(const std::string& input) {
-  std::size_t val;
-  std::cout << input;
-  if (!(std::cin >> val)) {
-    throw std::invalid_argument("Errore: input non valido.\n");
-  }
-  return val;
+std::size_t read_size_t(const std::string& prompt) {
+  std::string s;
+  std::cout << prompt;
+  std::cin >> s;
+
+  unsigned long long v = std::stoull(s);
+  if (std::to_string(v) != s)
+    throw std::invalid_argument("Errore: input non valido");
+
+  return v;
 }
 
 // ------------------- FUNZIONI DI CONTROLLO -------------------
@@ -59,14 +85,14 @@ Simulation::Simulation(Parameters p, double prey, double pred, double dt,
              ((par_.D * std::log(prey)) + (par_.A * std::log(pred)));
   evolution_.push_back(State{prey, pred, state_.H});
 
-  // Cambio di coordinate (manteniamo invarianti per la simulazione)
+  // Cambio di coordinate
   state_.prey = prey * par_.C / par_.D;
   state_.predator = pred * par_.B / par_.A;
 }
 
 Simulation::Simulation() : Simulation(set_simulation()) {}
 
-// ------------------- FUNZIONE DI SETUP -------------------
+// ------------------- inizializzazione di una simulazione -------------------
 
 Simulation Simulation::set_simulation() {
   Parameters p{};
@@ -74,13 +100,13 @@ Simulation Simulation::set_simulation() {
   std::size_t n{};
 
   try {
-    p.A = control(read_double("Inserisci tasso di natalità prede (A): "));
-    p.B = control(read_double("Inserisci tasso di mortalità prede (B): "));
-    p.C = control(read_double("Inserisci tasso di natalità predatori (C): "));
-    p.D = control(read_double("Inserisci tasso di mortalità predatori (D): "));
+    p.A = control(read_double("Inserisci tasso di natalità prede: "));
+    p.B = control(read_double("Inserisci tasso di mortalità prede: "));
+    p.C = control(read_double("Inserisci tasso di natalità predatori: "));
+    p.D = control(read_double("Inserisci tasso di mortalità predatori: "));
     prey = control(read_double("Inserisci numero iniziale di prede: "));
     predator = control(read_double("Inserisci numero iniziale di predatori: "));
-    dt = control(read_double("Inserisci passo di discretizzazione (dt): "));
+    dt = control(read_double("Inserisci l'unità temporale dt: "));
     n = control(read_size_t("Inserisci numero di iterazioni: "));
   } catch (std::invalid_argument const& e) {
     std::cerr << e.what();
@@ -92,6 +118,7 @@ Simulation Simulation::set_simulation() {
 
 // ------------------- EVOLUZIONE -------------------
 
+// evolve: descrive l'iterazione
 void Simulation::evolve() {
   auto x_rel = state_.prey;
   auto y_rel = state_.predator;
@@ -106,14 +133,14 @@ void Simulation::evolve() {
 
   if (!(state_.prey > 0) || !(state_.predator > 0)) {
     state_ = State{x_rel, y_rel, evolution_.back().H};
-    throw std::runtime_error(
-        "Simulation is over: one species has reached extinction\n");
+    throw std::runtime_error("\n ESTINZIONE :( \n");
   } else {
     evolution_.push_back(State{state_.prey * par_.D / par_.C,
                                state_.predator * par_.A / par_.B, state_.H});
   }
 }
 
+// compute: evolve n volte
 void Simulation::compute() {
   while (evolution_.size() < iterations_) {
     try {
@@ -128,123 +155,64 @@ void Simulation::compute() {
 // ------------------- STATISTICHE -------------------
 
 void Simulation::statistics() {
-  struct Sums {
-    double sum_prey{0.0}, sum_pred{0.0}, sum_prey2{0.0}, sum_pred2{0.0};
-  };
+  double sum_prey = 0.0;
+  double sum_pred = 0.0;
+  double sum_prey2 = 0.0;
+  double sum_pred2 = 0.0;
 
-  Sums sum = std::accumulate(evolution_.begin(), evolution_.end(), Sums{},
-                             [](Sums s, State const& st) {
-                               s.sum_prey += st.prey;
-                               s.sum_pred += st.predator;
-                               s.sum_prey2 += st.prey * st.prey;
-                               s.sum_pred2 += st.predator * st.predator;
-                               return s;
-                             });
+  for (const auto& s : evolution_) {
+    sum_prey += s.prey;
+    sum_pred += s.predator;
+    sum_prey2 += s.prey * s.prey;
+    sum_pred2 += s.predator * s.predator;
+  }
 
-  double N = static_cast<double>(evolution_.size());
-  double mean = sum.sum_prey / N;
+  const double N = static_cast<double>(evolution_.size());
+
+  const double prey_mean = sum_prey / N;
+  const double pred_mean = sum_pred / N;
+  const double prey_sigma = std::sqrt(sum_prey2 / N - prey_mean * prey_mean);
+  const double pred_sigma = std::sqrt(sum_pred2 / N - pred_mean * pred_mean);
+
   prey_stat_ = Statistics{
-      mean, std::sqrt(sum.sum_prey2 / N - mean * mean),
-      (*std::max_element(evolution_.begin(), evolution_.end(), comp_prey)).prey,
-      (*std::min_element(evolution_.begin(), evolution_.end(), comp_prey))
-          .prey};
+      prey_mean, prey_sigma,
+      std::max_element(evolution_.begin(), evolution_.end(), comp_prey)->prey,
+      std::min_element(evolution_.begin(), evolution_.end(), comp_prey)->prey};
 
-  mean = sum.sum_pred / N;
   pred_stat_ = Statistics{
-      mean, std::sqrt(sum.sum_pred2 / N - mean * mean),
-      (*std::max_element(evolution_.begin(), evolution_.end(), comp_pred))
-          .predator,
-      (*std::min_element(evolution_.begin(), evolution_.end(), comp_pred))
-          .predator};
+      pred_mean, pred_sigma,
+      std::max_element(evolution_.begin(), evolution_.end(), comp_pred)
+          ->predator,
+      std::min_element(evolution_.begin(), evolution_.end(), comp_pred)
+          ->predator};
 }
 
-// ------------------- SALVATAGGIO -------------------
+// ------------------- RISULTATI -------------------
 
 void Simulation::save_evolution(std::string const& name) const {
-  if (evolution_.size() < 2) {
-    std::cerr << "No evolution to display.\n";
-    return;
-  }
   std::ofstream outfile{name + ".evolution.csv"};
-  if (!outfile) throw std::runtime_error("Impossible to open output file\n");
-
   outfile << "prey\tpredator\tH\n";
   for (auto const& s : evolution_)
     outfile << s.prey << '\t' << s.predator << '\t' << s.H << '\n';
-
-  std::cout << "Evolution saved in " << name << ".evolution.csv\n";
-}
-
-void Simulation::save_trajectory(std::string const& name) const {
-  if (evolution_.size() < 2) {
-    std::cerr << "No evolution to display.\n";
-    return;
-  }
-
-  std::ofstream data_file{".tmp.csv"};
-  if (!data_file)
-    throw std::runtime_error("Impossible to open temporary data file\n");
-
-  for (auto const& s : evolution_)
-    data_file << s.prey << '\t' << s.predator << '\n';
-
-  data_file.flush();
-
-  const double xrange =
-      (*std::max_element(evolution_.begin(), evolution_.end(), comp_prey))
-          .prey *
-      1.05;
-  const double yrange =
-      (*std::max_element(evolution_.begin(), evolution_.end(), comp_pred))
-          .predator *
-      1.05;
-
-  std::ofstream gp_script{".tmp.gp"};
-  if (!gp_script)
-    throw std::runtime_error("Impossible to open gnuplot script\n");
-
-  gp_script
-      << "set terminal svg size 800,600 font 'Arial,10' background 'white'\n"
-      << "set output '" << name << ".trajectory.svg'\n"
-      << "set title 'ECOSYSTEM TRAJECTORY'\n"
-      << "set xlabel 'prey'\nset ylabel 'predator'\n"
-      << "set xrange [0:" << xrange << "]\nset yrange [0:" << yrange << "]\n"
-      << "plot '.tmp.csv' using 1:2 with linespoints pointtype 6 pointsize 0 "
-         "lc rgb 'red' title 'Evolution'\n";
-
-  gp_script.flush();
-
-  if (system("gnuplot -persistent .tmp.gp") != 0)
-    throw std::runtime_error("Errore durante l'esecuzione di gnuplot\n");
-
-  if (std::remove(".tmp.gp") != 0) std::cerr << "Failed to delete .tmp.gp\n";
-  if (std::remove(".tmp.csv") != 0) std::cerr << "Failed to delete .tmp.csv\n";
-
-  std::cout << "Trajectory saved in " << name << ".svg\n";
 }
 
 void Simulation::save_statistics(std::string const& name) {
-  if (evolution_.size() < 2) {
-    std::cerr << "Not enough data for statistics.\n";
-    return;
-  }
-
   this->statistics();
 
-  std::ofstream outfile{name + ".statistics.txt"};
-  if (!outfile) throw std::runtime_error("Impossible to open output file\n");
+  std::cout << "\n Due nuovi file sono stati salvati in /build. Statistiche "
+               "della simulazione:\n "
+            << "\nPREDA\n"
+            << "- media: " << prey_stat_.mean << "\n"
+            << "- dev std: " << prey_stat_.sigma << "\n"
+            << "- max: " << prey_stat_.maximum << "\n"
+            << "- min: " << prey_stat_.minimum << "\n"
+            << "PREDATORE\n"
+            << "- media: " << pred_stat_.mean << "\n"
+            << "- dev std: " << pred_stat_.sigma << "\n"
+            << "- max: " << pred_stat_.maximum << "\n"
+            << "- min: " << pred_stat_.minimum << "\n";
 
-  outfile << "PREY' STATISTICS\n"
-          << "- mean: " << prey_stat_.mean << "\n"
-          << "- sigma: " << prey_stat_.sigma << "\n"
-          << "- max: " << prey_stat_.maximum << "\n"
-          << "- min: " << prey_stat_.minimum << "\n"
-          << "PREDATOR' STATISTICS\n"
-          << "- mean: " << pred_stat_.mean << "\n"
-          << "- sigma: " << pred_stat_.sigma << "\n"
-          << "- max: " << pred_stat_.maximum << "\n"
-          << "- min: " << pred_stat_.minimum << "\n";
-
+  // --- dati per il grafico ---
   std::ofstream data_file{".tmp.csv"};
   double step{0};
   for (auto const& s : evolution_) {
@@ -252,76 +220,33 @@ void Simulation::save_statistics(std::string const& name) {
               << '\n';
     step += dt_;
   }
-  data_file.flush();
+  data_file.close();
 
+  // --- script gnuplot ---
   std::ofstream gp_script{".tmp.gp"};
   gp_script
-      << "set terminal svg size 800,600 font 'Arial,10' background 'white'\n"
+      << "set terminal svg size 1000,600 font 'Arial,14' background '#99d6e1'\n"
       << "set output '" << name << ".statistics.svg'\n"
-      << "set multiplot layout 2,1\n"
-      << "set title 'POPULATIONS'\nset xlabel 'time'\nset ylabel '# of "
-         "individuals'\n"
+      << "set title 'POPOLAZIONE' font ',16'\n"
+      << "set xlabel 'TEMPO' font ',14'\n"
+      << "set ylabel 'INDIVIDUI' font ',14'\n"
       << "set xrange [0:" << step << "]\n"
       << "set yrange ["
-      << std::fmin(prey_stat_.minimum, pred_stat_.minimum) * 0.95 << ":"
-      << std::fmax(prey_stat_.maximum, pred_stat_.maximum) * 1.05 << "]\n"
-      << "plot '.tmp.csv' using 1:2 with linespoints pointtype 6 pointsize 0 "
-         "lc rgb 'red' title 'prey',\\\n"
-      << "'.tmp.csv' using 1:3 with linespoints pointtype 6 pointsize 0 lc rgb "
-         "'blue' title 'predator'\n"
-      << "set title 'H(t)'\nset xlabel 'time'\nset ylabel 'H'\n"
-      << "set xrange [0:" << step << "]\n"
-      << "set yrange ["
-      << ((*std::min_element(
-               evolution_.begin(), evolution_.end(),
-               [](State const& a, State const& b) { return a.H < b.H; }))
-              .H *
-          0.95)
-      << ":"
-      << ((*std::max_element(
-               evolution_.begin(), evolution_.end(),
-               [](State const& a, State const& b) { return a.H < b.H; }))
-              .H *
-          1.05)
-      << "]\n"
-      << "plot '.tmp.csv' using 1:4 with linespoints pointtype 6 pointsize 0 "
-         "lc rgb 'green' title 'H(t)'\n"
-      << "unset multiplot";
-  gp_script.flush();
+      << std::fmin(prey_stat_.minimum, pred_stat_.minimum) * 0.9 << ":"
+      << std::fmax(prey_stat_.maximum, pred_stat_.maximum) * 1.1 << "]\n"
+      << "set grid lw 1 lc rgb '#dddddd'\n"
+      << "plot '.tmp.csv' using 1:2 with lines lw 2 lc rgb 'green' title "
+         "'POPOLAZIONE DI PREDE', "
+         "'.tmp.csv' using 1:3 with lines lw 2 lc rgb 'orange' title "
+         "'POPOLAZIONE DI PREDATORI'\n";
+  gp_script.close();
 
-  if (system("gnuplot -persistent .tmp.gp") != 0)
-    throw std::runtime_error("Errore durante l'esecuzione di gnuplot\n");
+  // --- esegue gnuplot per generare l'SVG ---
+  std::system("gnuplot .tmp.gp");
 
-  if (std::remove(".tmp.gp") != 0) std::cerr << "Failed to delete .tmp.gp\n";
-  if (std::remove(".tmp.csv") != 0) std::cerr << "Failed to delete .tmp.csv\n";
-
-  std::cout << "Statistics saved in " << name << ".txt and " << name
-            << ".svg\n";
-}
-
-// ------------------- OPERATORI -------------------
-
-bool operator==(Parameters const& a, Parameters const& b) {
-  return a.A == b.A && a.B == b.B && a.C == b.C && a.D == b.D;
-}
-
-bool operator==(State const& a, State const& b) {
-  return a.prey == b.prey && a.predator == b.predator;
-}
-
-// ------------------- FUNZIONI LIBERE -------------------
-
-bool comp_prey(State const& a, State const& b) { return a.prey < b.prey; }
-bool comp_pred(State const& a, State const& b) {
-  return a.predator < b.predator;
-}
-
-bool read(std::ifstream& in, std::string& str, char const delimiter) {
-  while (std::getline(in, str, delimiter)) {
-    if (str.empty() || str[0] == '#') continue;
-    return true;
-  }
-  return false;
+  // --- pulizia ---
+  std::remove(".tmp.gp");
+  std::remove(".tmp.csv");
 }
 
 }  // namespace volterra

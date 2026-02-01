@@ -55,8 +55,7 @@ class Simulation {
   // ------------------- COSTRUTTORI -------------------
   explicit Simulation(Parameters p, double prey, double pred, double dt,
                       std::size_t it);
-  Simulation();                          // usa set_simulation()
-  Simulation(double prey, double pred);  // default parameters per test/main
+  Simulation();  // usa set_simulation()
 
   // ------------------- GETTER -------------------
   Parameters const& parameters() const { return par_; }
@@ -76,7 +75,6 @@ class Simulation {
 
   // ------------------- OUTPUT -------------------
   void save_evolution(std::string const& name) const;
-  void save_trajectory(std::string const& file_name) const;
   void save_statistics(std::string const& name);
 };
 

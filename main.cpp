@@ -1,5 +1,6 @@
 
 #include <string>
+
 #include "simulation.hpp"
 
 int main() {
@@ -7,7 +8,7 @@ int main() {
 
   sim.compute();
   sim.save_evolution("sim");
-  sim.save_statistics("sim");
+  sim.save_results("sim");
 
   return 0;
 }

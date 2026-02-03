@@ -4,8 +4,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace volterra {
@@ -13,10 +13,10 @@ namespace volterra {
 // --------------------------- STRUCT ---------------------------
 
 struct Parameters {
-  double A;  // prey birth rate
-  double B;  // prey death rate
-  double C;  // predator birth rate
-  double D;  // predator death rate
+  double A;  // tasso di natalità prede
+  double B;  // tasso di mortalità prede
+  double C;  // tasso di natalità predatori
+  double D;  // tasso di mortalità predatori
 };
 
 struct State {
@@ -32,9 +32,10 @@ struct Statistics {
   double minimum;
 };
 
-// --------------------------- CLASS ---------------------------
+// --------------------------- CLASSE ---------------------------
 
 class Simulation {
+  // attributi
   Parameters const par_;
   double const dt_;
   std::size_t const iterations_;
@@ -43,21 +44,17 @@ class Simulation {
   Statistics prey_stat_;
   Statistics pred_stat_;
 
-  // Funzione che legge dati da input
+  //-----------------------FUNZIONE PRIVATA--------------------------
   static Simulation set_simulation();
 
-  // Funzioni di controllo dei valori
-  static Parameters const& control(Parameters const& p);
-  static double control(double val);
-  static std::size_t control(std::size_t n);
-
  public:
-  // ------------------- COSTRUTTORI -------------------
-  explicit Simulation(Parameters p, double prey, double pred, double dt,
-                      std::size_t it);
-  Simulation();  // usa set_simulation()
+  //-------------------------COSTRUTTORI------------------------------
+  Simulation(Parameters p, double prey, double pred, double dt,
+             double it);  // principale
+  Simulation();           // di default (inizializzzazione)
 
-  // ------------------- GETTER -------------------
+  //-----------------------FUNZIONI PUBBLICHE-------------------------
+  // getter
   Parameters const& parameters() const { return par_; }
   State const& init_state() const { return evolution_.front(); }
   State const& current_state() const { return evolution_.back(); }
@@ -68,27 +65,26 @@ class Simulation {
   Statistics const& prey_stat() const { return prey_stat_; }
   Statistics const& pred_stat() const { return pred_stat_; }
 
-  // ------------------- CALCOLI -------------------
+  // calcoli
   void evolve();
   void compute();
   void statistics();
 
-  // ------------------- OUTPUT -------------------
+  // file e output
   void save_evolution(std::string const& name) const;
-  void save_statistics(std::string const& name);
+  void save_results(std::string const& name);
 };
 
-// --------------------------- OPERATORI ---------------------------
+//--------------------FUNZIONI ESTERNE------------------------
+// operatori
 bool operator==(Parameters const& a, Parameters const& b);
 bool operator==(State const& a, State const& b);
 
-// --------------------------- FUNZIONI LIBERE ---------------------------
+// funzioni libere
 bool comp_prey(State const& a, State const& b);
 bool comp_pred(State const& a, State const& b);
 bool read(std::ifstream& in, std::string& str, char const delimiter);
-
-double read_double(const std::string& input);
-std::size_t read_size_t(const std::string& input);
+double control(const std::string& input);
 
 }  // namespace volterra
 

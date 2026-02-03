@@ -6,9 +6,9 @@
 int main() {
   volterra::Simulation sim;
 
-  sim.compute();
-  sim.save_evolution("sim");
-  sim.save_results("sim");
+  sim.go();
+  sim.save_evolution();
+  sim.save_plot();
 
   return 0;
 }

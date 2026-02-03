@@ -7,12 +7,12 @@
 
 namespace volterra {
 
-//------------------------FUNZIONE PRIVATA-------------------
+//------------------------FUNZIONE PRIVATA--------------------
 
 // SET_SIMULATION()
 Simulation Simulation::set_simulation() {
-  Parameters p{};
-  double prey{}, predator{}, dt{}, it{};
+  Parameters p{0.0, 0.0, 0.0, 0.0};
+  double prey{0.0}, predator{0}, dt{0.0}, it{0.0};
 
   try {
     p.A = control("Inserisci tasso di natalità prede: ");
@@ -38,15 +38,12 @@ Simulation::Simulation(Parameters p, double prey, double pred, double dt,
                        double it)
     : par_(p),
       dt_(dt),
-      iterations_(it < 0.0 ? 0 : static_cast<std::size_t>(it)) {
-  if (prey <= 0 || pred <= 0) {
-    throw std::invalid_argument("Input non valido.");
-  }
-  if (dt <= 0) {
-    throw std::invalid_argument("Input non valido.");
-  }
-  if (iterations_ == 0) {
-    throw std::invalid_argument("Input non valido.");
+      iterations_(it <= 0.0
+                      ? throw std::invalid_argument("Errore: input non valido.")
+                      : static_cast<std::size_t>(it)) {
+  if (prey <= 0 || pred <= 0 || dt <= 0 || p.A <= 0 || p.B <= 0 || p.C <= 0 ||
+      p.D < 0) {
+    throw std::invalid_argument("Errore: input non valido.");
   }
 
   state_.H = (par_.C * prey) + (par_.B * pred) -
@@ -78,15 +75,15 @@ void Simulation::evolve() {
 
   if (!(state_.prey > 0) || !(state_.predator > 0)) {
     state_ = State{x_rel, y_rel, evolution_.back().H};
-    throw std::runtime_error("\n ----------ESTINZIONE--------- \n");
+    throw std::runtime_error("\n ---------------ESTINZIONE--------------- \n");
   }
 
   evolution_.push_back(State{state_.prey * par_.D / par_.C,
                              state_.predator * par_.A / par_.B, state_.H});
 }
 
-// COMPUTE()
-void Simulation::compute() {
+// GO()
+void Simulation::go() {
   while (evolution_.size() < iterations_) {
     try {
       this->evolve();
@@ -97,63 +94,16 @@ void Simulation::compute() {
   }
 }
 
-// STATITICS()
-void Simulation::statistics() {
-  double sum_prey{0.0}, sum_pred{0.0};
-  double sum_prey2{0.0}, sum_pred2{0.0};
-
-  for (const auto& s : evolution_) {
-    sum_prey += s.prey;
-    sum_pred += s.predator;
-    sum_prey2 += s.prey * s.prey;
-    sum_pred2 += s.predator * s.predator;
-  }
-
-  double N = static_cast<double>(evolution_.size());
-  double prey_mean = sum_prey / N;
-  double pred_mean = sum_pred / N;
-  double prey_sigma = std::sqrt(sum_prey2 / N - prey_mean * prey_mean);
-  double pred_sigma = std::sqrt(sum_pred2 / N - pred_mean * pred_mean);
-
-  prey_stat_ = Statistics{
-      prey_mean, prey_sigma,
-      std::max_element(evolution_.begin(), evolution_.end(), comp_prey)->prey,
-      std::min_element(evolution_.begin(), evolution_.end(), comp_prey)->prey};
-
-  pred_stat_ = Statistics{
-      pred_mean, pred_sigma,
-      std::max_element(evolution_.begin(), evolution_.end(), comp_pred)
-          ->predator,
-      std::min_element(evolution_.begin(), evolution_.end(), comp_pred)
-          ->predator};
-}
-
 // SAVE_EVOLUTION()
-void Simulation::save_evolution(std::string const& name) const {
-  std::ofstream outfile{name + ".evolution.csv"};
+void Simulation::save_evolution() {
+  std::ofstream outfile{"evolution.csv"};
   outfile << "prey\tpredator\tH\n";
   for (auto const& s : evolution_)
     outfile << s.prey << '\t' << s.predator << '\t' << s.H << '\n';
 }
 
-// SAVE_RESULTS()
-void Simulation::save_results(std::string const& name) {
-  this->statistics();
-
-  std::cout << "\nStatistiche della simulazione:\n"
-            << "\nPREDE\n"
-            << "- media: " << prey_stat_.mean << "\n"
-            << "- dev std: " << prey_stat_.sigma << "\n"
-            << "- max: " << prey_stat_.maximum << "\n"
-            << "- min: " << prey_stat_.minimum << "\n"
-            << "\nPREDATORI\n"
-            << "- media: " << pred_stat_.mean << "\n"
-            << "- dev std: " << pred_stat_.sigma << "\n"
-            << "- max: " << pred_stat_.maximum << "\n"
-            << "- min: " << pred_stat_.minimum << "\n"
-            << "\n\nGrafico ed evoluzione temporale della simulazione sono "
-               "stati salvati.\n";
-
+// SAVE_PLOT()
+void Simulation::save_plot() {
   std::ofstream data_file{".tmp.csv"};
   double step{0};
   for (auto const& s : evolution_) {
@@ -166,14 +116,12 @@ void Simulation::save_results(std::string const& name) {
   std::ofstream gp_script{".tmp.gp"};
   gp_script
       << "set terminal svg size 1000,600 font 'Arial,14' background '#99d6e1'\n"
-      << "set output '" << name << ".plot.svg'\n"
+      << "set output 'plot.svg'\n"
       << "set title 'POPOLAZIONE'\n"
       << "set xlabel 'TEMPO'\n"
       << "set ylabel 'INDIVIDUI'\n"
       << "set xrange [0:" << step << "]\n"
-      << "set yrange ["
-      << std::fmin(prey_stat_.minimum, pred_stat_.minimum) * 0.9 << ":"
-      << std::fmax(prey_stat_.maximum, pred_stat_.maximum) * 1.1 << "]\n"
+      << "set autoscale y\n"
       << "set grid\n"
       << "plot '.tmp.csv' using 1:2 with lines lw 2 lc rgb 'green' title "
          "'PREDE', "
@@ -184,23 +132,21 @@ void Simulation::save_results(std::string const& name) {
   std::system("gnuplot .tmp.gp");
   std::remove(".tmp.gp");
   std::remove(".tmp.csv");
+
+  std::cout << "\nGrafico ed evoluzione temporale della simulazione sono "
+               "stati salvati.\n";
 }
 
 // ------------------- FUNZIONI ESTERNE-------------------
-// OPERATORE = TRA PARAMETRI
+// OPERATORE = TRA PARAMETRI PER TEST
 bool operator==(Parameters const& a, Parameters const& b) {
   return a.A == b.A && a.B == b.B && a.C == b.C && a.D == b.D;
 }
-// OPERATORE = TRA STATES
+// OPERATORE = TRA STATES PER TEST
 bool operator==(State const& a, State const& b) {
   return a.prey == b.prey && a.predator == b.predator;
 }
-// FUNZIONI DI PARAGONE
-bool comp_prey(State const& a, State const& b) { return a.prey < b.prey; }
-bool comp_pred(State const& a, State const& b) {
-  return a.predator < b.predator;
-}
-// FUNZIONE DI LETTURA SICURA DI IMPUT
+// FUNZIONE DI LETTURA SICURA DI INPUT
 double control(const std::string& input) {
   double val;
   std::cout << input;

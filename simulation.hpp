@@ -25,13 +25,6 @@ struct State {
   double H;
 };
 
-struct Statistics {
-  double mean;
-  double sigma;
-  double maximum;
-  double minimum;
-};
-
 // --------------------------- CLASSE ---------------------------
 
 class Simulation {
@@ -41,8 +34,6 @@ class Simulation {
   std::size_t const iterations_;
   State state_;
   std::vector<State> evolution_;
-  Statistics prey_stat_;
-  Statistics pred_stat_;
 
   //-----------------------FUNZIONE PRIVATA--------------------------
   static Simulation set_simulation();
@@ -62,17 +53,14 @@ class Simulation {
   double dt() const { return dt_; }
   std::size_t iterations() const { return iterations_; }
   std::vector<State> const& evolution() const { return evolution_; }
-  Statistics const& prey_stat() const { return prey_stat_; }
-  Statistics const& pred_stat() const { return pred_stat_; }
 
   // calcoli
   void evolve();
-  void compute();
-  void statistics();
+  void go();
 
   // file e output
-  void save_evolution(std::string const& name) const;
-  void save_results(std::string const& name);
+  void save_evolution();
+  void save_plot();
 };
 
 //--------------------FUNZIONI ESTERNE------------------------
@@ -81,9 +69,7 @@ bool operator==(Parameters const& a, Parameters const& b);
 bool operator==(State const& a, State const& b);
 
 // funzioni libere
-bool comp_prey(State const& a, State const& b);
-bool comp_pred(State const& a, State const& b);
-bool read(std::ifstream& in, std::string& str, char const delimiter);
+
 double control(const std::string& input);
 
 }  // namespace volterra

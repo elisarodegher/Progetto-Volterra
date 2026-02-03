@@ -41,18 +41,18 @@ TEST_CASE("Testing object construction") {
   CHECK(sim.iterations() == std::size_t(3));
 }
 
-TEST_CASE("Testing computations") {
+TEST_CASE("Testing sim") {
   volterra::Simulation sim({800., 1., 1., 1000.}, 2000., 2000., 0.0001, 3.);
 
-  SUBCASE("Testing evolve()") {
+  SUBCASE("Testing calculate()") {
     sim.evolve();
 
     CHECK(sim.current_state() == volterra::State{1760., 2200., 0.});
     CHECK(sim.internal_state() == volterra::State{1.76, 2.75, 0.});
   }
 
-  SUBCASE("Testing compute()") {
-    sim.compute();
+  SUBCASE("Testing go()") {
+    sim.go();
 
     auto ev = sim.evolution();
 
@@ -66,20 +66,4 @@ TEST_CASE("Testing computations") {
       CHECK(ev[i].predator == doctest::Approx(vec[i].predator).epsilon(0.0001));
     }
   }
-}
-
-TEST_CASE("Testing statistics") {
-  volterra::Simulation sim({800., 1., 1., 1000.}, 2000., 2000., 0.0001, 3.);
-
-  sim.compute();
-  sim.statistics();
-
-  CHECK(sim.prey_stat().mean == doctest::Approx(1757.867).epsilon(0.01));
-  CHECK(sim.pred_stat().mean == doctest::Approx(2189.067).epsilon(0.01));
-  CHECK(sim.prey_stat().sigma == doctest::Approx(198.58).epsilon(0.01));
-  CHECK(sim.pred_stat().sigma == doctest::Approx(150.11).epsilon(0.01));
-  CHECK(sim.prey_stat().maximum == doctest::Approx(2000.).epsilon(0.01));
-  CHECK(sim.pred_stat().maximum == doctest::Approx(2367.2).epsilon(0.01));
-  CHECK(sim.prey_stat().minimum == doctest::Approx(1513.6).epsilon(0.01));
-  CHECK(sim.pred_stat().minimum == doctest::Approx(2000.).epsilon(0.01));
 }

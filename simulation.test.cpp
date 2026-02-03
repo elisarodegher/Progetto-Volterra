@@ -35,16 +35,16 @@ TEST_CASE("Testing object construction") {
   volterra::Simulation sim({800., 1., 1., 1000.}, 2000., 2000., 0.0001, 3.5);
 
   CHECK(sim.parameters() == volterra::Parameters{800., 1., 1., 1000.});
-  CHECK(sim.init_state() == volterra::State{2000., 2000., 0.});
+  CHECK(sim.initial_state() == volterra::State{2000., 2000., 0.});
   CHECK(sim.internal_state() == volterra::State{2., 2.5, 0.});
-  CHECK(sim.dt() == 0.0001);
+  CHECK(sim.timescale() == 0.0001);
   CHECK(sim.iterations() == std::size_t(3));
 }
 
 TEST_CASE("Testing sim") {
   volterra::Simulation sim({800., 1., 1., 1000.}, 2000., 2000., 0.0001, 3.);
 
-  SUBCASE("Testing calculate()") {
+  SUBCASE("Testing evolve()") {
     sim.evolve();
 
     CHECK(sim.current_state() == volterra::State{1760., 2200., 0.});
@@ -62,8 +62,8 @@ TEST_CASE("Testing sim") {
         {2000., 2000., 0.}, {1760., 2200., 0.}, {1513.6, 2367.2, 0.}};
 
     for (std::size_t i{0}; i < ev.size(); ++i) {
-      CHECK(ev[i].prey == doctest::Approx(vec[i].prey).epsilon(0.0001));
-      CHECK(ev[i].predator == doctest::Approx(vec[i].predator).epsilon(0.0001));
+      CHECK(ev[i].x == doctest::Approx(vec[i].x).epsilon(0.0001));
+      CHECK(ev[i].y == doctest::Approx(vec[i].y).epsilon(0.0001));
     }
   }
 }

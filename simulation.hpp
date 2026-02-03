@@ -13,64 +13,63 @@ namespace volterra {
 // --------------------------- STRUCT ---------------------------
 
 struct Parameters {
-  double A;  // tasso di natalità prede
-  double B;  // tasso di mortalità prede
-  double C;  // tasso di natalità predatori
-  double D;  // tasso di mortalità predatori
+  double a;  // prey birth rate
+  double b;  // prey death rate
+  double c;  // predator birth rate
+  double d;  // predator death rate
 };
 
 struct State {
-  double prey;
-  double predator;
-  double H;
+  double x;  // prey
+  double y;  // predator
+  double H;  // Hamiltonian
 };
 
-// --------------------------- CLASSE ---------------------------
+// --------------------------- CLASS ---------------------------
 
 class Simulation {
-  // attributi
-  Parameters const par_;
-  double const dt_;
+  // attributes
+  Parameters const parameters_;
+  double const timescale_;
   std::size_t const iterations_;
   State state_;
   std::vector<State> evolution_;
 
-  //-----------------------FUNZIONE PRIVATA--------------------------
+  //-----------------------PRIVATE FUNCTION--------------------------
   static Simulation set_simulation();
 
  public:
-  //-------------------------COSTRUTTORI------------------------------
-  Simulation(Parameters p, double prey, double pred, double dt,
-             double it);  // principale
-  Simulation();           // di default (inizializzzazione)
+  //-------------------------CONSTRUCTORS------------------------------
+  Simulation(Parameters p_, double x_, double y_, double dt_,
+             double it_);  // main constructor
+  Simulation();            // default constructor
 
-  //-----------------------FUNZIONI PUBBLICHE-------------------------
-  // getter
-  Parameters const& parameters() const { return par_; }
-  State const& init_state() const { return evolution_.front(); }
+  //-----------------------PUBLIC FUNCTIONS-------------------------
+  // getters
+  Parameters const& parameters() const { return parameters_; }
+  State const& initial_state() const { return evolution_.front(); }
   State const& current_state() const { return evolution_.back(); }
   State const& internal_state() const { return state_; }
-  double dt() const { return dt_; }
+  double timescale() const { return timescale_; }
   std::size_t iterations() const { return iterations_; }
   std::vector<State> const& evolution() const { return evolution_; }
 
-  // calcoli
+  // calculations
   void evolve();
   void go();
 
-  // file e output
+  // file and output
   void save_evolution();
   void save_plot();
 };
 
-//--------------------FUNZIONI ESTERNE------------------------
-// operatori
-bool operator==(Parameters const& a, Parameters const& b);
-bool operator==(State const& a, State const& b);
+//--------------------EXTERNAL FUNCTIONS------------------------
+// operators
+bool operator==(Parameters const& example1, Parameters const& example2);
+bool operator==(State const& example1, State const& example2);
 
-// funzioni libere
-
-double control(const std::string& input);
+// utility
+double control(const std::string&);
 
 }  // namespace volterra
 

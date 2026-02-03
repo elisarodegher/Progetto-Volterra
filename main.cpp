@@ -5,7 +5,6 @@
 
 int main() {
   volterra::Simulation sim;
-
   sim.go();
   sim.save_evolution();
   sim.save_plot();

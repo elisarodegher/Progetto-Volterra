@@ -97,7 +97,7 @@ void Simulation::go() {
 
 // SAVE_EVOLUTION()
 void Simulation::save_evolution() {
-  std::ofstream outfile{"evolution.csv"};
+  std::ofstream outfile{"EVOLUTION.csv"};
   outfile << "x\ty\tH\n";
   for (auto const& s : evolution_) {
     outfile << s.x << '\t' << s.y << '\t' << s.H << '\n';
@@ -117,7 +117,7 @@ void Simulation::save_plot() {
   std::ofstream gp_script{".tmp.gp"};
   gp_script
       << "set terminal svg size 1000,600 font 'Arial,14' background '#99d6e1'\n"
-      << "set output 'plot.svg'\n"
+      << "set output 'PLOT.svg'\n"
       << "set title 'POPULATION'\n"
       << "set xlabel 'TIME'\n"
       << "set ylabel 'INDIVIDUALS'\n"

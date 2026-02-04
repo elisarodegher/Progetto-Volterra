@@ -115,8 +115,8 @@ TEST_CASE("Testing sim") {
         {2000., 2000., 0.}, {1760., 2200., 0.}, {1513.6, 2367.2, 0.}};
 
     for (std::size_t i{0}; i < ev.size(); ++i) {
-      CHECK(ev[i].x == doctest::Approx(vec[i].x).epsilon(0.0001));
-      CHECK(ev[i].y == doctest::Approx(vec[i].y).epsilon(0.0001));
+      CHECK(ev[i].x == doctest::Approx(vec[i].x).epsilon(1e-10));
+      CHECK(ev[i].y == doctest::Approx(vec[i].y).epsilon(1e-10));
     }
   }
 }

@@ -41,7 +41,7 @@ Simulation::Simulation(Parameters p_, double x_, double y_, double dt_,
       iterations_(it_ <= 0.0 ? throw std::invalid_argument("Invalid input.")
                              : static_cast<std::size_t>(it_)) {
   if (x_ <= 0 || y_ <= 0 || dt_ <= 0 || p_.a <= 0 || p_.b <= 0 || p_.c <= 0 ||
-      p_.d < 0) {
+      p_.d <= 0) {
     throw std::invalid_argument("Invalid input.");
   }
 

@@ -6,28 +6,48 @@
 
 TEST_CASE("Testing constructors' throws") {
   SUBCASE("Testing null parameter throws") {
-    CHECK_THROWS(volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200.,
-                                      0.00042, 4200.));
+    CHECK_THROWS(volterra::Simulation({49., 0., 49., 49.4}, 4900., 4900.,
+                                      0.00049, 4900.));
   }
 
-  SUBCASE("Testing negative parameter throws") {
-    CHECK_THROWS(volterra::Simulation({42., 42., -42., 42.42}, 4200., 4200.,
-                                      0.00042, 4200.));
+  SUBCASE("Testing negative a throws") {
+    CHECK_THROWS(volterra::Simulation({-49., 49., 49., 49.4}, 4900., 4900.,
+                                      0.00049, 4900.));
   }
 
-  SUBCASE("Testing negative population throws") {
-    CHECK_THROWS(volterra::Simulation({42., 42., 42., 42.42}, -4200., 4200.,
-                                      0.00042, 4200.));
+  SUBCASE("Testing negative b throws") {
+    CHECK_THROWS(volterra::Simulation({49., -49., 49., 49.4}, 4900., 4900.,
+                                      0.00049, 4900.));
+  }
+
+  SUBCASE("Testing negative c throws") {
+    CHECK_THROWS(volterra::Simulation({49., 49., -49., 49.4}, 4900., 4900.,
+                                      0.00049, 4900.));
+  }
+
+  SUBCASE("Testing negative d throws") {
+    CHECK_THROWS(volterra::Simulation({49., 49., 49., -49.4}, 4900., 4900.,
+                                      0.00049, 4900.));
+  }
+
+  SUBCASE("Testing negative prey population throws") {
+    CHECK_THROWS(volterra::Simulation({49., 49., 49., 49.4}, -4900., 4900.,
+                                      0.00049, 4900.));
+  }
+
+  SUBCASE("Testing negative predator population throws") {
+    CHECK_THROWS(volterra::Simulation({49., 49., 49., 49.4}, 4900., -4900.,
+                                      0.00049, 4900.));
   }
 
   SUBCASE("Testing negative time increment throws") {
-    CHECK_THROWS(volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200.,
-                                      -0.00042, 4200.));
+    CHECK_THROWS(volterra::Simulation({49., 49., 49., 49.4}, 4900., 4900.,
+                                      -0.00049, 4900.));
   }
 
   SUBCASE("Testing negative iterations throws") {
-    CHECK_THROWS(volterra::Simulation({42., 0., 42., 42.42}, 4200., 4200.,
-                                      0.00042, -4200.));
+    CHECK_THROWS(volterra::Simulation({49., 49., 49., 49.4}, 4900., 4900.,
+                                      0.00049, -4900.));
   }
 }
 

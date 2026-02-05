@@ -84,23 +84,23 @@ TEST_CASE("Testing constructors") {
 }
 
 TEST_CASE(" Testing initialization ") {
-  volterra::Simulation sim({800., 1., 1., 1000.}, 2000., 2000., 0.0001, 3.5);
+  volterra::Simulation sim({400., 1., 1., 500.}, 1000., 1000., 0.0001, 3.5);
 
-  CHECK(sim.parameters() == volterra::Parameters{800., 1., 1., 1000.});
-  CHECK(sim.initial_state() == volterra::State{2000., 2000., 0.});
+  CHECK(sim.parameters() == volterra::Parameters{400., 1., 1., 500.});
+  CHECK(sim.initial_state() == volterra::State{1000., 1000., 0.});
   CHECK(sim.internal_state() == volterra::State{2., 2.5, 0.});
   CHECK(sim.timescale() == 0.0001);
   CHECK(sim.iterations() == std::size_t(3));
 }
 
 TEST_CASE("Testing methods") {
-  volterra::Simulation sim({800., 1., 1., 1000.}, 2000., 2000., 0.0001, 3.);
+  volterra::Simulation sim({400., 1., 1., 500.}, 1000., 1000., 0.0001, 3.);
 
   SUBCASE("Testing evolve()") {
     sim.evolve();
 
-    CHECK(sim.current_state() == volterra::State{1760., 2200., 0.});
-    CHECK(sim.internal_state() == volterra::State{1.76, 2.75, 0.});
+    CHECK(sim.current_state() == volterra::State{940., 1050., 0.});
+    CHECK(sim.internal_state() == volterra::State{1.88, 2.625, 0.});
   }
 
   SUBCASE("Testing go()") {
@@ -111,7 +111,7 @@ TEST_CASE("Testing methods") {
     REQUIRE(evolution.size() == std::size_t(3));
 
     std::vector<volterra::State> expected{
-        {2000., 2000., 0.}, {1760., 2200., 0.}, {1513.6, 2367.2, 0.}};
+        {1000., 1000., 0.}, {940., 1050., 0.}, {878.9, 1096.2, 0.}};
 
     for (std::size_t i{0}; i < expected.size(); ++i) {
       CHECK(evolution[i].x == doctest::Approx(expected[i].x).epsilon(1e-10));

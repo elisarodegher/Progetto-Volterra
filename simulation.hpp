@@ -68,7 +68,7 @@ class Simulation {
 bool operator==(Parameters const& example1, Parameters const& example2);
 bool operator==(State const& example1, State const& example2);
 
-// utility
+// control function
 double control(const std::string&);
 
 }  // namespace volterra

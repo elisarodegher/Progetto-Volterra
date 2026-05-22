@@ -6,7 +6,6 @@
 int main() {
   try {
     volterra::Parameters p;
-
     p.a = volterra::control("Enter prey birth rate: ");
     p.b = volterra::control("Enter prey death rate: ");
     p.c = volterra::control("Enter predator birth rate: ");

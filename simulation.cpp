@@ -126,16 +126,15 @@ bool operator==(State const& example1, State const& example2) {
   return example1.x == example2.x && example1.y == example2.y;
 }
 
-// SAFE INPUT FUNCTION (resta qui solo se ancora usata nel main)
-double control(const std::string& input) {
-  double value;
-  std::cout << input;
-
-  if (!(std::cin >> value) || value <= 0) {
+// SAFE INPUT FUNCTION
+double control(const std::string& message) {
+  double input;
+  std::cout << message;
+  std::cin >> input;
+  if (std::cin.fail() || input <= 0) {
     throw std::invalid_argument("Invalid input.\n");
   }
-
-  return value;
+  return input;
 }
 
 }  // namespace volterra

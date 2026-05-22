@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-TEST_CASE("Testing constructors") {
+TEST_CASE("Testing constructor") {
   SUBCASE(" a=0 ") {
     CHECK_THROWS(volterra::Simulation({0., 49., 49., 49.4}, 4900., 4900.,
                                       0.00049, 4900.));
@@ -81,16 +81,20 @@ TEST_CASE("Testing constructors") {
     CHECK_THROWS(volterra::Simulation({49., 49., 49., 49.4}, 4900., 4900.,
                                       0.00049, 0.0));
   }
+  SUBCASE(" floor(it) =! it") {
+    CHECK_THROWS(volterra::Simulation({49., 49., 49., 49.4}, 4900., 4900.,
+                                      0.00049, 3.5));
+  }
 }
 
 TEST_CASE(" Testing initialization ") {
-  volterra::Simulation sim({400., 1., 1., 500.}, 1000., 1000., 0.0001, 3.5);
+  volterra::Simulation sim({400., 1., 1., 500.}, 1000., 1000., 0.0001, 3);
 
   CHECK(sim.parameters() == volterra::Parameters{400., 1., 1., 500.});
   CHECK(sim.initial_state() == volterra::State{1000., 1000., 0.});
   CHECK(sim.internal_state() == volterra::State{2., 2.5, 0.});
   CHECK(sim.timescale() == 0.0001);
-  CHECK(sim.iterations() == std::size_t(3));
+  CHECK(sim.iterations() == 3);
 }
 
 TEST_CASE("Testing methods") {

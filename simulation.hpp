@@ -31,18 +31,13 @@ class Simulation {
   // attributes
   Parameters const parameters_;
   double const timescale_;
-  std::size_t const iterations_;
+  double const iterations_;
   State state_;
   std::vector<State> evolution_;
 
-  //-----------------------PRIVATE FUNCTION--------------------------
-  static Simulation set_simulation();
-
  public:
-  //-------------------------CONSTRUCTORS------------------------------
-  Simulation(Parameters p_, double x_, double y_, double dt_,
-             double it_);  // main constructor
-  Simulation();            // default constructor
+  //-------------------------CONSTRUCTOR------------------------------
+  Simulation(Parameters p_, double x_, double y_, double dt_, double it_);
 
   //-----------------------PUBLIC FUNCTIONS-------------------------
   // getters
@@ -51,7 +46,7 @@ class Simulation {
   State const& current_state() const { return evolution_.back(); }
   State const& internal_state() const { return state_; }
   double timescale() const { return timescale_; }
-  std::size_t iterations() const { return iterations_; }
+  double iterations() const { return iterations_; }
   std::vector<State> const& evolution() const { return evolution_; }
 
   // calculations
@@ -64,6 +59,7 @@ class Simulation {
 };
 
 //--------------------EXTERNAL FUNCTIONS------------------------
+
 // operators
 bool operator==(Parameters const& example1, Parameters const& example2);
 bool operator==(State const& example1, State const& example2);

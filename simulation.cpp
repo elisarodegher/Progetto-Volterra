@@ -69,8 +69,8 @@ void Simulation::go() {
 void Simulation::save_evolution() {
   std::ofstream outfile{"EVOLUTION.csv"};
   outfile << "x\ty\tH\n";
-  for (auto const& s : evolution_) {
-    outfile << s.x << '\t' << s.y << '\t' << s.H << '\n';
+  for (auto const& state : evolution_) {
+    outfile << state.x << '\t' << state.y << '\t' << state.H << '\n';
   }
 }
 
@@ -79,8 +79,8 @@ void Simulation::save_plot() {
   std::ofstream data_file{".tmp.csv"};
   double t{0};
 
-  for (auto const& s : evolution_) {
-    data_file << t << '\t' << s.x << '\t' << s.y << '\t' << s.H << '\n';
+  for (auto const& state : evolution_) {
+    data_file << t << '\t' << state.x << '\t' << state.y << '\t' << state.H << '\n';
     t += timescale_;
   }
 

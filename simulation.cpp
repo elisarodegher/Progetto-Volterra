@@ -34,23 +34,24 @@ void Simulation::evolve() {
   auto x_rel = state_.x;
   auto y_rel = state_.y;
 
-  auto x = evolution_.back().x;
-  auto y = evolution_.back().y;
+  auto y_rel_new = y_rel + parameters_.d * (x_rel - 1) * y_rel * timescale_;
+  auto x_rel_new = x_rel + parameters_.a * (1 - y_rel_new) * x_rel * timescale_;
 
-  state_ =
-      State{x_rel + parameters_.a * (1 - y_rel) * x_rel * timescale_,
-            y_rel + parameters_.d * (x_rel - 1) * y_rel * timescale_,
-            (parameters_.c * x) + (parameters_.b * y) -
-                (parameters_.d * std::log(x)) - (parameters_.a * std::log(y))};
 
-  if ((state_.x <= 0) || (state_.y <= 0)) {
-    state_ = State{x_rel, y_rel, evolution_.back().H};
-    throw std::runtime_error("\nSIMULATION'S OVER: ECOSYSTEM WENT EXTINCT.\n");
+  if ((x_rel_new <= 0) || (y_rel_new <= 0)) {
+    throw std::runtime_error("\nSIMULATION'S OVER: ECOSYSTEM WENT EXTINCT. \n");
   }
 
-  evolution_.push_back(State{state_.x * parameters_.d / parameters_.c,
-                             state_.y * parameters_.a / parameters_.b,
-                             state_.H});
+  auto x_new = x_rel_new * parameters_.d / parameters_.c;
+  auto y_new = y_rel_new * parameters_.a / parameters_.b;
+
+  auto H_new = (parameters_.c * x_new) + (parameters_.b * y_new) -
+               (parameters_.d * std::log(x_new)) -
+               (parameters_.a * std::log(y_new));
+
+  state_ = State{x_rel_new, y_rel_new, H_new};
+
+  evolution_.push_back(State{x_new, y_new, H_new});
 }
 
 // GO()

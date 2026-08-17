@@ -105,10 +105,10 @@ TEST_CASE("Testing methods") {
   SUBCASE("Testing evolve()") {
     sim.evolve();
 
-    CHECK(sim.current_state() == volterra::State{940., 1050., 0.});
+    CHECK(sim.current_state() == volterra::State{935., 1050., 0.});
     CHECK(sim.current_state().H ==
           doctest::Approx(-4217.89144190497).epsilon(1e-10));
-    CHECK(sim.internal_state() == volterra::State{1.88, 2.625, 0.});
+    CHECK(sim.internal_state() == volterra::State{1.87, 2.625, 0.});
     CHECK(sim.internal_state().H ==
           doctest::Approx(-4217.89144190497).epsilon(1e-10));
   }

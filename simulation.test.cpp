@@ -121,11 +121,14 @@ TEST_CASE("Testing methods") {
     REQUIRE(evolution.size() == std::size_t(3));
 
     std::vector<volterra::State> expected{
-        {1000., 1000., 0.}, {940., 1050., 0.}, {878.9, 1096.2, 0.}};
+        {1000., 1000., -4216.97975108392},
+        {935., 1050., -4217.89144190497},
+        {869.9543875, 1095.675, -4218.24135983133}};
 
     for (std::size_t i{0}; i < expected.size(); ++i) {
       CHECK(evolution[i].x == doctest::Approx(expected[i].x).epsilon(1e-10));
       CHECK(evolution[i].y == doctest::Approx(expected[i].y).epsilon(1e-10));
+      CHECK(evolution[i].H == doctest::Approx(expected[i].H).epsilon(1e-10));
     }
   }
 }

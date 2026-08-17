@@ -93,6 +93,8 @@ TEST_CASE(" Testing initialization ") {
   CHECK(sim.parameters() == volterra::Parameters{400., 1., 1., 500.});
   CHECK(sim.initial_state() == volterra::State{1000., 1000., 0.});
   CHECK(sim.internal_state() == volterra::State{2., 2.5, 0.});
+  CHECK(sim.internal_state().H ==
+        doctest::Approx(-4216.97975108392).epsilon(1e-10));
   CHECK(sim.timescale() == 0.0001);
   CHECK(sim.iterations() == 3);
 }

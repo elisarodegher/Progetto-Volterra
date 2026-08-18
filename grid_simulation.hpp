@@ -32,16 +32,20 @@ class GridSimulation {
   GridSimulation(Parameters p, int width, int height, double prey_density,
                  double predator_density, int iterations);
 
-  void evolve();
-  void go();
-
   // getters
   Parameters parameters() const { return parameters_; }
   int width() const { return width_; }
   int height() const { return height_; }
   int iterations() const { return iterations_; }
   std::vector<Population> const& history() const { return history_; }
-  
+
+  // evolution
+  void evolve();
+  void go();
+
+  // index calculations
+  int index(int row, int col) const { return row * width_ + col; }
+  Cell current_cell(int row, int column) { return grid_[index(row, column)]; };
 };
 
 }  // namespace volterra

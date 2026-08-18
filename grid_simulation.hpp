@@ -1,3 +1,5 @@
+#include <random>
+
 #include "simulation.hpp"
 
 namespace volterra {
@@ -12,8 +14,8 @@ struct Cell {
 };
 
 struct Population {
-  size_t fish;    // prey
-  size_t sharks;  // predators
+  size_t fish;    // prey = fish
+  size_t sharks;  // predators = sharks
 };
 
 // CLASSE
@@ -25,10 +27,12 @@ class GridSimulation {
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D
   std::vector<Population>
-      history_;  // vettore che contiene il registro dei vari stati della
-                 // popolazione, contiene le struct populations
+      history_;       // vettore che contiene il registro dei vari stati della
+                      // popolazione, contiene le struct populations
+  std::mt19937 rng_;  // generatore di numeri casuali
   // index calculations
-  int index(int row, int col) const { return row * width_ + col; }
+  size_t index(int row, int col) const { return row * width_ + col; }
+
   Cell& current_cell(int row, int column) {
     return grid_[index(row, column)];
   };  // probabilmente da sistemare per conversioni implicite

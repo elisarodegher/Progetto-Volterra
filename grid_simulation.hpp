@@ -25,15 +25,15 @@ struct GridParameters {
   // Predator
   int predator_initial_energy;
   int predator_breed_energy;
-  int predator_food_energy;
+  int predator_fuel;
   int predator_move_cost;
 };
 
 //----------------CLASSE-----------------------
 class GridSimulation {
-  GridParameters parameters_;  // preso da simulation.hpp
-  int width_;                  // larghezza griglia
-  int height_;                 // altezza griglia
+  GridParameters parameters_;
+  int width_;   // larghezza griglia
+  int height_;  // altezza griglia
   int iterations_;
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D

@@ -2,6 +2,7 @@
 
 namespace volterra {
 
+// STRUCT
 enum class CellState { Empty, Prey, Predator };
 
 struct Cell {
@@ -11,10 +12,11 @@ struct Cell {
 };
 
 struct Population {
-  int x;  // prey
-  int y;  // predators
+  int fish;    // prey
+  int sharks;  // predators
 };
 
+// CLASSE
 class GridSimulation {
   Parameters parameters_;  // preso da simulation.hpp
   int width_;              // larghezza griglia
@@ -22,16 +24,24 @@ class GridSimulation {
   int iterations_;
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D
-  std::vector<Population> history_;
+  std::vector<Population>
+      history_;  // vettore che contiene il registro dei vari stati della
+                 // popolazione, contiene le struct populations
 
-  
-  public:
+ public:
   GridSimulation(Parameters p, int width, int height, double prey_density,
                  double predator_density, int iterations);
 
   void evolve();
   void go();
+
+  // getters
+  Parameters parameters() const { return parameters_; }
+  int width() const { return width_; }
+  int height() const { return height_; }
+  int iterations() const { return iterations_; }
+  std::vector<Population> const& history() const { return history_; }
+  
 };
 
-
-}  
+}  // namespace volterra

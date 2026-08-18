@@ -18,11 +18,22 @@ struct Population {
   size_t sharks;  // predators = sharks
 };
 
-//------------------------------------------ CLASSE--------------------------------------------------------------------
+struct GridParameters {
+  // Prey
+  int prey_breed_time;
+
+  // Predator
+  int predator_initial_energy;
+  int predator_breed_energy;
+  int predator_food_energy;
+  int predator_move_cost;
+};
+
+//----------------CLASSE-----------------------
 class GridSimulation {
-  Parameters parameters_;  // preso da simulation.hpp
-  int width_;              // larghezza griglia
-  int height_;             // altezza griglia
+  GridParameters parameters_;  // preso da simulation.hpp
+  int width_;                  // larghezza griglia
+  int height_;                 // altezza griglia
   int iterations_;
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D
@@ -31,18 +42,17 @@ class GridSimulation {
                       // popolazione, contiene le struct populations
   std::mt19937 rng_;  // generatore di numeri casuali
 
-
-
-  // ----------------------------------------index calculations---------------------------------------------------------
-  size_t index(int row, int col) const { return row * width_ + col; }
+  // -----------index calculations-------------------------------------
+  std::size_t index(std::size_t row, std::size_t col) const {
+    return row * width_ + col;
+  }
 
   Cell& current_cell(int row, int column) {
     return grid_[index(row, column)];
   };  // probabilmente da sistemare per conversioni implicite
 
-
-  // ---------------------------------------changing cells with pacman effect ---------------------------------------------------------
-  // reminder: higher rows have lower indexes!
+  // ------------------------------changing cells with pacman effect
+  //  reminder: higher rows have lower indexes!
   std::size_t up(std::size_t row) const {
     return (row + height_ - 1) % height_;
   }
@@ -53,27 +63,24 @@ class GridSimulation {
   std::size_t right(std::size_t col) const { return (col + 1) % width_; }
 
  public:
-
- // ----------------------------------------------------costruttore-----------------------------------------------------------
+  // ----------------------------------------------------costruttore-----------------------------------------------------------
 
   GridSimulation(Parameters p, int width, int height, double prey_density,
                  double predator_density, int iterations);
 
-
   // ------------------------------------------------getters----------------------------------------------------------------
-  Parameters parameters() const { return parameters_; }
+  GridParameters parameters() const { return parameters_; }
   int width() const { return width_; }
   int height() const { return height_; }
   int iterations() const { return iterations_; }
   std::vector<Population> const& history() const { return history_; }
 
-  // --------------------------------------------evolution----------------------------------------------------------------
+  // ------------------------------------evolution----------------------------------------------------------------
   void evolve();
   void go();
 };
 
-
-//---------------------------------------------------- operatori di confronto---------------------------------------------------
+//----------------------- operatori di confronto--------------------------
 bool operator==(Cell const& a, Cell const& b) {
   return a.state == b.state && a.energy == b.energy && a.age == b.age;
 }

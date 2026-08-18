@@ -1,8 +1,8 @@
 #include <random>
+#include<iostream>
 
-#include "simulation.hpp"
 
-namespace volterra {
+namespace wator {
 
 // ----------------------------------------------STRUCT-------------------------------------------------------------------
 enum class CellState { Empty, Prey, Predator };
@@ -40,6 +40,7 @@ struct GridParameters {
 
 //----------------CLASSE-----------------------
 class GridSimulation {
+  //attributi
   GridParameters parameters_;
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D
@@ -47,6 +48,9 @@ class GridSimulation {
       history_;       // vettore che contiene il registro dei vari stati della
                       // popolazione, contiene le struct populations
   std::mt19937 rng_;  // generatore di numeri casuali
+
+  // ------------restituire la population x e y corrente)--------------
+  Population get_population() const;
 
   // -----------index calculations-------------------------------------
   std::size_t index(std::size_t row, std::size_t col) const {
@@ -75,7 +79,7 @@ class GridSimulation {
  public:
   // ----------------------------------------------------costruttore-----------------------------------------------------------
 
-  GridSimulation(GridParameters parameters);
+  GridSimulation(GridParameters parameters, unsigned seed);
 
   // ------------------------------------------------getters----------------------------------------------------------------
   GridParameters parameters() const { return parameters_; }
@@ -83,6 +87,7 @@ class GridSimulation {
   int height() const { return parameters_.height; }
   int iterations() const { return parameters_.iterations; }
   std::vector<Population> const& history() const { return history_; }
+  
 
   // ------------------------------------evolution----------------------------------------------------------------
   void evolve();
@@ -98,4 +103,4 @@ bool operator==(Population const& a, Population const& b) {
   return a.fish == b.fish && a.sharks == b.sharks;
 }
 
-}  // namespace volterra
+}  // namespace volterr

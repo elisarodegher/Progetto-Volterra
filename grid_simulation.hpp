@@ -1,6 +1,5 @@
+#include <iostream>
 #include <random>
-#include<iostream>
-
 
 namespace wator {
 
@@ -40,41 +39,27 @@ struct GridParameters {
 
 //----------------CLASSE-----------------------
 class GridSimulation {
-  //attributi
+  // attributi
   GridParameters parameters_;
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D
   std::vector<Population>
-      history_;       // vettore che contiene il registro dei vari stati della
-                      // popolazione, contiene le struct populations
+      history_;       // vettore che contiene il registro dei vari stati
   std::mt19937 rng_;  // generatore di numeri casuali
 
   // ------------restituire la population x e y corrente)--------------
   Population get_population() const;
 
   // -----------index calculations-------------------------------------
-  std::size_t index(std::size_t row, std::size_t col) const {
-    return row * parameters_.width + col;
-  }
-
-  Cell& current_cell(int row, int column) {
-    return grid_[index(row, column)];
-  };  // probabilmente da sistemare per conversioni implicite
+  std::size_t index(std::size_t row, std::size_t col) const;
+  Cell& current_cell(int row, int column);
 
   // ------------------------------changing cells with pacman effect
   //  reminder: higher rows have lower indexes!
-  std::size_t up(std::size_t row) const {
-    return (row + parameters_.height - 1) % parameters_.height;
-  }
-  std::size_t down(std::size_t row) const {
-    return (row + 1) % parameters_.height;
-  }
-  std::size_t left(std::size_t col) const {
-    return (col + parameters_.width - 1) % parameters_.width;
-  }
-  std::size_t right(std::size_t col) const {
-    return (col + 1) % parameters_.width;
-  }
+  std::size_t up(std::size_t row) const;
+  std::size_t down(std::size_t row) const;
+  std::size_t left(std::size_t col) const;
+  std::size_t right(std::size_t col) const;
 
  public:
   // ----------------------------------------------------costruttore-----------------------------------------------------------
@@ -87,7 +72,6 @@ class GridSimulation {
   int height() const { return parameters_.height; }
   int iterations() const { return parameters_.iterations; }
   std::vector<Population> const& history() const { return history_; }
-  
 
   // ------------------------------------evolution----------------------------------------------------------------
   void evolve();
@@ -103,4 +87,4 @@ bool operator==(Population const& a, Population const& b) {
   return a.fish == b.fish && a.sharks == b.sharks;
 }
 
-}  // namespace volterr
+}  // namespace wator

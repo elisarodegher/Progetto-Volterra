@@ -12,8 +12,8 @@ struct Cell {
 };
 
 struct Population {
-  int fish;    // prey
-  int sharks;  // predators
+  size_t fish;    // prey
+  size_t sharks;  // predators
 };
 
 // CLASSE
@@ -27,6 +27,22 @@ class GridSimulation {
   std::vector<Population>
       history_;  // vettore che contiene il registro dei vari stati della
                  // popolazione, contiene le struct populations
+  // index calculations
+  int index(int row, int col) const { return row * width_ + col; }
+  Cell& current_cell(int row, int column) {
+    return grid_[index(row, column)];
+  };  // probabilmente da sistemare per conversioni implicite
+
+  // changing cells with pacman effect; reminder: higher rows have lower
+  // indexes!
+  std::size_t up(std::size_t row) const {
+    return (row + height_ - 1) % height_;
+  }
+  std::size_t down(std::size_t row) const { return (row + 1) % height_; }
+  std::size_t left(std::size_t col) const {
+    return (col + width_ - 1) % width_;
+  }
+  std::size_t right(std::size_t col) const { return (col + 1) % width_; }
 
  public:
   GridSimulation(Parameters p, int width, int height, double prey_density,
@@ -42,10 +58,15 @@ class GridSimulation {
   // evolution
   void evolve();
   void go();
-
-  // index calculations
-  int index(int row, int col) const { return row * width_ + col; }
-  Cell current_cell(int row, int column) { return grid_[index(row, column)]; };
 };
+
+// operatori di confronto
+bool operator==(Cell const& a, Cell const& b) {
+  return a.state == b.state && a.energy == b.energy && a.age == b.age;
+}
+
+bool operator==(Population const& a, Population const& b) {
+  return a.fish == b.fish && a.sharks == b.sharks;
+}
 
 }  // namespace volterra

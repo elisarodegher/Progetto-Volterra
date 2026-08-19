@@ -28,8 +28,8 @@ GridSimulation::GridSimulation(GridParameters p, unsigned seed)
       cell.state = CellState::Predator;
       cell.energy = parameters_.sharks_initial_energy;
     }
-    history_.push_back(get_population());
   }
+  history_.push_back(get_population());
 };
 
 // ---------------METODI DELLA CLASSE------------------
@@ -49,33 +49,39 @@ Population GridSimulation::get_population() const {
   return population;
 }
 
+std::size_t GridSimulation::index(std::size_t row, std::size_t col) const {
+  return row * parameters_.width + col;
+}
 
- std::size_t GridSimulation::index(std::size_t row, std::size_t col) const {
-    return row * parameters_.width + col;
-  }
-
-  Cell& GridSimulation::current_cell(int row, int column) {
-    return grid_[index(row, column)];
-  }; 
-
+Cell& GridSimulation::current_cell(int row, int column) {
+  return grid_[index(row, column)];
+};
 
 std::size_t GridSimulation::up(std::size_t row) const {
-    return (row + parameters_.height - 1) % parameters_.height;
+  return (row + parameters_.height - 1) % parameters_.height;
 }
 
 std::size_t GridSimulation::down(std::size_t row) const {
-    return (row + 1) % parameters_.height;
+  return (row + 1) % parameters_.height;
 }
 
 std::size_t GridSimulation::left(std::size_t col) const {
-    return (col + parameters_.width - 1) % parameters_.width;
+  return (col + parameters_.width - 1) % parameters_.width;
 }
 
 std::size_t GridSimulation::right(std::size_t col) const {
-    return (col + 1) % parameters_.width;
+  return (col + 1) % parameters_.width;
 }
 
 // PUBBLICI serve fare evolve e go
 
+// EXTERNAL FUNCTIONS
+bool operator==(Cell const& a, Cell const& b) {
+  return a.state == b.state && a.energy == b.energy && a.age == b.age;
+}
+
+bool operator==(Population const& a, Population const& b) {
+  return a.fish == b.fish && a.sharks == b.sharks;
+}
 
 }  // namespace wator

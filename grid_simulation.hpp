@@ -1,5 +1,9 @@
+#ifndef GRID_SIMULATION_HPP
+#define GRID_SIMULATION_HPP
+
 #include <iostream>
 #include <random>
+#include <vector>
 
 namespace wator {
 
@@ -43,9 +47,8 @@ class GridSimulation {
   GridParameters parameters_;
 
   std::vector<Cell> grid_;  // griglia "appiattita" in un vettore 1D
-  std::vector<Population>
-      history_;       // vettore che contiene il registro dei vari stati
-  std::mt19937 rng_;  // generatore di numeri casuali
+  std::vector<Population> history_;
+  std::mt19937 rng_;
 
   // ------------restituire la population x e y corrente)--------------
   Population get_population() const;
@@ -79,12 +82,10 @@ class GridSimulation {
 };
 
 //----------------------- operatori di confronto--------------------------
-bool operator==(Cell const& a, Cell const& b) {
-  return a.state == b.state && a.energy == b.energy && a.age == b.age;
-}
 
-bool operator==(Population const& a, Population const& b) {
-  return a.fish == b.fish && a.sharks == b.sharks;
-}
+bool operator==(Cell const& a, Cell const& b);
+bool operator==(Population const& a, Population const& b);
 
 }  // namespace wator
+
+#endif

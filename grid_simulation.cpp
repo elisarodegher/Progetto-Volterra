@@ -183,6 +183,8 @@ void GridSimulation::evolve() {
                               // azzera tutto
         }
       }
+
+      // ancora da gestire la riproduzione dello squalo e la sua eventuale morte
     }
 
     history_.push_back(get_population());

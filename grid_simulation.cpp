@@ -53,7 +53,7 @@ std::size_t GridSimulation::index(std::size_t row, std::size_t col) const {
   return row * parameters_.width + col;
 }
 
-Cell& GridSimulation::current_cell(int row, int column) {
+Cell& GridSimulation::current_cell(size_t row, size_t column) {
   return grid_[index(row, column)];
 };
 
@@ -74,6 +74,14 @@ std::size_t GridSimulation::right(std::size_t col) const {
 }
 
 // PUBBLICI serve fare evolve e go
+
+void GridSimulation::evolve() {
+  std::vector<std::size_t>
+      occupied;  // contiene gli indici delle caselle occupate ex (1,3,4)
+  for (std::size_t i = 0; i < grid_.size(); ++i) {
+    if (grid_[i].state != CellState::Empty) occupied.push_back(i);
+  }
+}
 
 // EXTERNAL FUNCTIONS
 bool operator==(Cell const& a, Cell const& b) {

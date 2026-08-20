@@ -52,6 +52,8 @@ Population GridSimulation::get_population() const {
   return population;
 }
 
+// UP DOWN LEFT RIGHT
+
 std::size_t GridSimulation::index(std::size_t row, std::size_t col) const {
   return row * parameters_.width + col;
 }
@@ -76,6 +78,8 @@ std::size_t GridSimulation::right(std::size_t col) const {
   return (col + 1) % parameters_.width;
 }
 
+// METODO REPRODUCE
+
 void GridSimulation::reproduce(std::size_t index,
                                std::vector<std::size_t> const& free_neighb,
                                std::size_t max) {
@@ -83,41 +87,49 @@ void GridSimulation::reproduce(std::size_t index,
     return;
   }
 
+  std::uniform_int_distribution<std::size_t> dist(0, free_neighb.size() - 1);
+  std::size_t child = free_neighb[dist(rng_)];
+
   if (grid_[index].state == CellState::Prey) {
-    if (grid_[index].age < max) {
+    if (static_cast<std::size_t>(grid_[index].age) < max) {
       return;
     }
-
-    // scelta casuale della cella libera
-    std::uniform_int_distribution<std::size_t> dist(0, free_neighb.size() - 1);
-
-    std::size_t child = free_neighb[dist(rng_)];
-
-    // nasce una nuova preda
     grid_[child].state = CellState::Prey;
     grid_[child].age = 0;
-
-    // il genitore riparte da age 0
     grid_[index].age = 0;
+
   } else if (grid_[index].state == CellState::Predator) {
-    if (grid_[index].energy < max) {
+    if (static_cast<std::size_t>(grid_[index].energy) < max) {
       return;
     }
-
-    std::uniform_int_distribution<std::size_t> dist(0, free_neighb.size() - 1);
-
-    std::size_t child = free_neighb[dist(rng_)];
-
-    // nasce un nuovo squalo
+    // l'energia del genitore viene divisa a meta' col figlio (come nel modello
+    // Wa-Tor)
+    int const total_energy = grid_[index].energy;
+    grid_[index].energy = total_energy / 2;
+    grid_[child].energy = total_energy - grid_[index].energy;
     grid_[child].state = CellState::Predator;
-    grid_[child].energy = parameters_.sharks_initial_energy;
     grid_[child].age = 0;
-
-    grid_[index].energy = grid_[index].energy / 2;
   }
 }
 
+// metodo per creare il vicinato vuoto
+std::vector<std::size_t> GridSimulation::empty_neighbours(
+    std::size_t row, std::size_t col) const {
+  std::vector<std::size_t> result;
+  std::array<std::array<std::size_t, 2>, 4> neighbours = {
+      {{up(row), col}, {row, right(col)}, {down(row), col}, {row, left(col)}}};
+
+  for (auto const& n : neighbours) {
+    if (grid_[index(n[0], n[1])].state == CellState::Empty) {
+      result.push_back(index(n[0], n[1]));
+    }
+  }
+  return result;
+}
+
 // PUBBLICI serve fare evolve e go
+
+// EVOLVE
 
 void GridSimulation::evolve() {
   std::vector<std::size_t>
@@ -137,106 +149,102 @@ void GridSimulation::evolve() {
 
     std::size_t row{j / parameters_.width};
     std::size_t col{j % parameters_.width};
-    std::array<std::array<std::size_t, 2>, 4> neighbours = {{{up(row), col},
-                                                             {row, right(col)},
-                                                             {down(row), col},
-                                                             {row, left(col)}}};
+    if (grid_[j].state == CellState::Empty || already_moved[j]) continue;
 
-    if (grid_[j].state ==
-        CellState::Prey) {  // ------------------------------CASO PREDA
-      std::vector<std::size_t> danger_neighb;
-      std::vector<std::size_t> safe_neighb;
+    std::size_t const row{j / parameters_.width};
+    std::size_t const col{j % parameters_.width};  // FIN QUI UGUALE
 
-      for (std::size_t i = 0; i < neighbours.size(); ++i) {
-        std::size_t neighbour_row = neighbours[i][0];
-        std::size_t neighbour_col = neighbours[i][1];
+    if (grid_[j].state == CellState::Prey) {
+      // ---------------- CASO PREDA ----------------
+      std::vector<std::size_t> const safe_neighb = empty_neighbours(row, col);
 
-        if (current_cell(neighbour_row, neighbour_col).state ==
-            CellState::Empty) {
-          safe_neighb.push_back(index(neighbour_row, neighbour_col));
+      if (safe_neighb.empty()) {
+        // nessuna cella libera: la preda resta ferma, ma invecchia comunque
+        grid_[j].age += 1;
+        already_moved[j] = true;
+      } else {
+        std::uniform_int_distribution<std::size_t> dist(0,
+                                                        safe_neighb.size() - 1);
+        std::size_t const chosen = safe_neighb[dist(rng_)];
+
+        grid_[chosen] = grid_[j];
+        grid_[chosen].age += 1;
+        grid_[j] = Cell{};
+
+        already_moved[chosen] = true;
+        already_moved[j] = true;
+
+        if (static_cast<std::size_t>(grid_[chosen].age) >=
+            static_cast<std::size_t>(parameters_.fish_breed_age)) {
+          std::size_t const breed_row{chosen / parameters_.width};
+          std::size_t const breed_col{chosen % parameters_.width};
+          reproduce(chosen, empty_neighbours(breed_row, breed_col),
+                    static_cast<std::size_t>(parameters_.fish_breed_age));
         }
       }
 
-      /*se il vicinato è safe, ovvero non contiene squali , si sceglie una
-       * cella random tra quelle*/
-      std::uniform_int_distribution<std::size_t> dist(0,
-                                                      safe_neighb.size() - 1);
+    } else {
+      // ---------------- CASO PREDATORE ----------------
+      std::array<std::array<std::size_t, 2>, 4> const neighbours = {
+          {{up(row), col},
+           {row, right(col)},
+           {down(row), col},
+           {row, left(col)}}};
 
-      std::size_t chosen = safe_neighb[dist(rng_)];
-
-      grid_[chosen] = grid_[j];
-      grid_[chosen].age += 1;
-      grid_[j] = Cell{};
-
-      already_moved[chosen] = true;
-
-      if (grid_[j].age >= parameters_.fish_breed_age) {
-        reproduce(j, safe_neighb, parameters_.fish_breed_age);
-      }
-
-    } else {  // -----------------------------------CASO PREDATORE
       std::vector<std::size_t> prey_neighb;
       std::vector<std::size_t> empty_neighb;
 
-      for (std::size_t i = 0; i < neighbours.size(); ++i) {
-        std::size_t neighbour_row = neighbours[i][0];
-        std::size_t neighbour_col = neighbours[i][1];
-
-        if (current_cell(neighbour_row, neighbour_col).state ==
-            CellState::Prey) {
-          prey_neighb.push_back(index(neighbour_row, neighbour_col));
-        } else if (current_cell(neighbour_row, neighbour_col).state ==
-                   CellState::Empty) {
-          empty_neighb.push_back(index(neighbour_row, neighbour_col));
-        }
-
-        /*se il vicinato di prede è vuoto, si sposta nel vicinato vuoto,
-         * altrimenti va a mangare la preda. in entrambi casi c'è un move
-         * cost, solo se mangia la preda acquista energia*/
-
-        if (prey_neighb.empty()) {
-          std::uniform_int_distribution<std::size_t> dist(
-              0, empty_neighb.size() - 1);
-
-          std::size_t chosen = empty_neighb[dist(rng_)];
-
-          grid_[chosen] = grid_[j];
-          grid_[chosen].energy -= parameters_.sharks_move_cost;
-          grid_[j] = Cell{};
-
-          already_moved[chosen] = true;
-        } else {
-          std::uniform_int_distribution<std::size_t> dist(
-              0, prey_neighb.size() - 1);
-
-          std::size_t chosen = prey_neighb[dist(rng_)];
-
-          grid_[chosen] = grid_[j];
-
-          // calcolo della spesa / guadagno di energia
-          grid_[chosen].energy -= parameters_.sharks_move_cost;
-          grid_[chosen].energy += parameters_.sharks_food_energy;
-
-          // la casella chosen ha cambiato stato
-
-          already_moved[chosen] = true;
-
-          // in j devo impostare che la cell è vuota
-          grid_[j] = Cell{};  // struct cell con i valori di default quindi
-                              // azzera tutto
+      for (auto const& n : neighbours) {
+        CellState const state = current_cell(n[0], n[1]).state;
+        if (state == CellState::Prey) {
+          prey_neighb.push_back(index(n[0], n[1]));
+        } else if (state == CellState::Empty) {
+          empty_neighb.push_back(index(n[0], n[1]));
         }
       }
 
-      // la riproduzione dello squalo
-      if (grid_[j].energy >= parameters_.sharks_breed_energy) {
-        reproduce(j, empty_neighb, parameters_.sharks_breed_energy);
+      std::size_t chosen{j};  // di default resta fermo
+
+      if (!prey_neighb.empty()) {
+        std::uniform_int_distribution<std::size_t> dist(0,
+                                                        prey_neighb.size() - 1);
+        chosen = prey_neighb[dist(rng_)];
+
+        grid_[chosen] = grid_[j];
+        grid_[chosen].energy -= parameters_.sharks_move_cost;
+        grid_[chosen].energy += parameters_.sharks_food_energy;
+        grid_[j] = Cell{};
+
+      } else if (!empty_neighb.empty()) {
+        std::uniform_int_distribution<std::size_t> dist(
+            0, empty_neighb.size() - 1);
+        chosen = empty_neighb[dist(rng_)];
+
+        grid_[chosen] = grid_[j];
+        grid_[chosen].energy -= parameters_.sharks_move_cost;
+        grid_[j] = Cell{};
+
+      } else {
+        // nessun vicino disponibile: resta fermo, ma paga comunque il costo
+        // energetico
+        grid_[chosen].energy -= parameters_.sharks_move_cost;
       }
 
-      // da gestire la morte??
+      already_moved[chosen] = true;
+      already_moved[j] = true;
+
+      if (grid_[chosen].energy <= 0) {
+        grid_[chosen] = Cell{};  // muore di fame
+      } else if (static_cast<std::size_t>(grid_[chosen].energy) >=
+                 static_cast<std::size_t>(parameters_.sharks_breed_energy)) {
+        std::size_t const breed_row{chosen / parameters_.width};
+        std::size_t const breed_col{chosen % parameters_.width};
+        reproduce(chosen, empty_neighbours(breed_row, breed_col),
+                  static_cast<std::size_t>(parameters_.sharks_breed_energy));
+      }
     }
-
-    history_.push_back(get_population());
   }
+  history_.push_back(get_population());
 }
 
 // EXTERNAL FUNCTIONS

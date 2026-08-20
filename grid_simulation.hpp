@@ -68,6 +68,9 @@ class GridSimulation {
   void reproduce(std::size_t index, std::vector<std::size_t> const& free_neighb,
                  std::size_t reproduction_treshold);
 
+  std::vector<std::size_t> empty_neighbours(std::size_t row,
+                                            std::size_t col) const;
+
  public:
   // ----------------------------------------------------costruttore-----------------------------------------------------------
 

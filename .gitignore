@@ -12,3 +12,5 @@ Makefile
 # Executables
 main
 *.out
+
+prove.cpp

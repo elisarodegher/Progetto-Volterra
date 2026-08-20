@@ -265,4 +265,15 @@ bool operator==(Population const& a, Population const& b) {
   return a.fish == b.fish && a.sharks == b.sharks;
 }
 
+bool operator==(GridParameters const& a, GridParameters const& b) {
+  return a.width == b.width && a.height == b.height &&
+         a.iterations == b.iterations && a.fish_density == b.fish_density &&
+         a.sharks_density == b.sharks_density &&
+         a.fish_breed_age == b.fish_breed_age &&
+         a.sharks_initial_energy == b.sharks_initial_energy &&
+         a.sharks_breed_energy == b.sharks_breed_energy &&
+         a.sharks_food_energy == b.sharks_food_energy &&
+         a.sharks_move_cost == b.sharks_move_cost;
+}
+
 }  // namespace wator

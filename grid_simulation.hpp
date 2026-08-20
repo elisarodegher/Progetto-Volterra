@@ -92,6 +92,7 @@ class GridSimulation {
 
 bool operator==(Cell const& a, Cell const& b);
 bool operator==(Population const& a, Population const& b);
+bool operator==(GridParameters const& a, GridParameters const& b);
 
 }  // namespace wator
 

@@ -18,8 +18,8 @@ struct Cell {
 };
 
 struct Population {
-  size_t fish;    // prey = fish
-  size_t sharks;  // predators = sharks
+  size_t fish{0};    // prey = fish
+  size_t sharks{0};  // predators = sharks
 };
 
 struct GridParameters {

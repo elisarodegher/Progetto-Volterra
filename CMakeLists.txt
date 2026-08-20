@@ -24,8 +24,11 @@ add_executable(main main.cpp simulation.cpp)
 # il testing e' abilitato di default
 # per disabilitarlo, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
-  # aggiungi l'eseguibile progetto.t
+  
   add_executable(simulation.test simulation.test.cpp simulation.cpp)
-  # aggiungi l'eseguibile progetto.t alla lista dei test
   add_test(NAME simulation.test COMMAND simulation.test)
+
+  add_executable(grid_simulation.test grid_simulation.test.cpp grid_simulation.cpp)
+  add_test(NAME grid_simulation.test COMMAND grid_simulation.test)
+endif() 
 endif() 

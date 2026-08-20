@@ -26,7 +26,7 @@ struct GridParameters {
   // Grid / simulation
   std::size_t width;
   std::size_t height;
-  int iterations;
+  std::size_t iterations;
 
   // Initial population
   double fish_density;

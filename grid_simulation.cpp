@@ -9,7 +9,7 @@ namespace wator {
 
 GridSimulation::GridSimulation(GridParameters p, unsigned seed)
     : parameters_(p), rng_(seed) {
-  if (p.width == 0 || p.height == 0 || p.iterations <= 0 ||
+  if (p.width == 0 || p.height == 0 || p.iterations == 0 ||
       p.fish_density <= 0 || p.sharks_density <= 0 ||
       (p.fish_density + p.sharks_density) > 1 || p.fish_density <= 0 ||
       p.sharks_density <= 0 || p.sharks_initial_energy <= 0 ||
@@ -241,6 +241,19 @@ void GridSimulation::evolve() {
     }
   }
   history_.push_back(get_population());
+}
+
+// GO
+
+void GridSimulation::go() {
+  while (history_.size() < parameters_.iterations) {
+    try {
+      this->evolve();
+    } catch (const std::runtime_error& error) {
+      std::cerr << error.what();
+      break;
+    }
+  }
 }
 
 // EXTERNAL FUNCTIONS

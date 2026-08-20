@@ -147,10 +147,6 @@ void GridSimulation::evolve() {
       continue;  // se la cella è vuota ho ha subito un cambiamento, salta
                  // l'iterazione
 
-    std::size_t row{j / parameters_.width};
-    std::size_t col{j % parameters_.width};
-    if (grid_[j].state == CellState::Empty || already_moved[j]) continue;
-
     std::size_t const row{j / parameters_.width};
     std::size_t const col{j % parameters_.width};  // FIN QUI UGUALE
 

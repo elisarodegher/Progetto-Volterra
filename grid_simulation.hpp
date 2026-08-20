@@ -1,6 +1,7 @@
 #ifndef GRID_SIMULATION_HPP
 #define GRID_SIMULATION_HPP
 
+#include <array>
 #include <iostream>
 #include <random>
 #include <vector>
@@ -55,7 +56,7 @@ class GridSimulation {
 
   // -----------index calculations-------------------------------------
   std::size_t index(std::size_t row, std::size_t col) const;
-  Cell& current_cell(int row, int column);
+  Cell& current_cell(size_t row, size_t column);
 
   // ------------------------------changing cells with pacman effect
   //  reminder: higher rows have lower indexes!
@@ -64,6 +65,9 @@ class GridSimulation {
   std::size_t left(std::size_t col) const;
   std::size_t right(std::size_t col) const;
 
+  void reproduce(std::size_t index, std::vector<std::size_t> const& free_neighb,
+                 std::size_t reproduction_treshold);
+
  public:
   // ----------------------------------------------------costruttore-----------------------------------------------------------
 
@@ -71,9 +75,9 @@ class GridSimulation {
 
   // ------------------------------------------------getters----------------------------------------------------------------
   GridParameters parameters() const { return parameters_; }
-  int width() const { return parameters_.width; }
-  int height() const { return parameters_.height; }
-  int iterations() const { return parameters_.iterations; }
+  size_t width() const { return parameters_.width; }
+  size_t height() const { return parameters_.height; }
+  size_t iterations() const { return parameters_.iterations; }
   std::vector<Population> const& history() const { return history_; }
 
   // ------------------------------------evolution----------------------------------------------------------------

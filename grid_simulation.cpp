@@ -76,6 +76,47 @@ std::size_t GridSimulation::right(std::size_t col) const {
   return (col + 1) % parameters_.width;
 }
 
+void GridSimulation::reproduce(std::size_t index,
+                               std::vector<std::size_t> const& free_neighb,
+                               std::size_t max) {
+  if (free_neighb.empty()) {
+    return;
+  }
+
+  if (grid_[index].state == CellState::Prey) {
+    if (grid_[index].age < max) {
+      return;
+    }
+
+    // scelta casuale della cella libera
+    std::uniform_int_distribution<std::size_t> dist(0, free_neighb.size() - 1);
+
+    std::size_t child = free_neighb[dist(rng_)];
+
+    // nasce una nuova preda
+    grid_[child].state = CellState::Prey;
+    grid_[child].age = 0;
+
+    // il genitore riparte da age 0
+    grid_[index].age = 0;
+  } else if (grid_[index].state == CellState::Predator) {
+    if (grid_[index].energy < max) {
+      return;
+    }
+
+    std::uniform_int_distribution<std::size_t> dist(0, free_neighb.size() - 1);
+
+    std::size_t child = free_neighb[dist(rng_)];
+
+    // nasce un nuovo squalo
+    grid_[child].state = CellState::Predator;
+    grid_[child].energy = parameters_.sharks_initial_energy;
+    grid_[child].age = 0;
+
+    grid_[index].energy = grid_[index].energy / 2;
+  }
+}
+
 // PUBBLICI serve fare evolve e go
 
 void GridSimulation::evolve() {

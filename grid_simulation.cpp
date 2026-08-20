@@ -221,9 +221,9 @@ void GridSimulation::evolve() {
         grid_[j] = Cell{};
 
       } else {
-        // nessun vicino disponibile: resta fermo, ma paga comunque il costo
-        // energetico
-        grid_[chosen].energy -= parameters_.sharks_move_cost;
+        // nessun vicino disponibile: resta fermo, ma paga comunque la metà del
+        // costo energetico
+        grid_[chosen].energy -= parameters_.sharks_move_cost / 2;
       }
 
       already_moved[chosen] = true;

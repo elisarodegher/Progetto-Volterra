@@ -170,7 +170,9 @@ void GridSimulation::evolve() {
 
       already_moved[chosen] = true;
 
-      // ANCORA DA GESTIRE RIPRODUZIONE PREDE
+      if (grid_[j].age >= parameters_.fish_breed_age) {
+        reproduce(j, safe_neighb, parameters_.fish_breed_age);
+      }
 
     } else {  // -----------------------------------CASO PREDATORE
       std::vector<std::size_t> prey_neighb;
@@ -225,7 +227,12 @@ void GridSimulation::evolve() {
         }
       }
 
-      // ancora da gestire la riproduzione dello squalo e la sua eventuale morte
+      // la riproduzione dello squalo
+      if (grid_[j].energy >= parameters_.sharks_breed_energy) {
+        reproduce(j, empty_neighb, parameters_.sharks_breed_energy);
+      }
+
+      // da gestire la morte??
     }
 
     history_.push_back(get_population());

@@ -89,6 +89,8 @@ void GridSimulation::reproduce(std::size_t index,
 
   std::uniform_int_distribution<std::size_t> dist(0, free_neighb.size() - 1);
   std::size_t child = free_neighb[dist(rng_)];
+  // creato l'indice random della cella per il child, preso a caso nel free
+  // neighbour
 
   if (grid_[index].state == CellState::Prey) {
     if (static_cast<std::size_t>(grid_[index].age) < max) {
@@ -97,6 +99,9 @@ void GridSimulation::reproduce(std::size_t index,
     grid_[child].state = CellState::Prey;
     grid_[child].age = 0;
     grid_[index].age = 0;
+
+    // pesce madre si splitta in due pesci figli, uno resta dove era pesce
+    // madre, uno va in una cella random, entrambi a età zero
 
   } else if (grid_[index].state == CellState::Predator) {
     if (static_cast<std::size_t>(grid_[index].energy) < max) {
@@ -113,14 +118,14 @@ void GridSimulation::reproduce(std::size_t index,
 }
 
 // metodo per creare il vicinato vuoto
-std::vector<std::size_t> GridSimulation::empty_neighbours(
-    std::size_t row, std::size_t col) const {
+std::vector<std::size_t> GridSimulation::neighbours(
+    std::size_t row, std::size_t col, CellState chosen_state) const {
   std::vector<std::size_t> result;
-  std::array<std::array<std::size_t, 2>, 4> neighbours = {
+  std::array<std::array<std::size_t, 2>, 4> complete_neighb = {
       {{up(row), col}, {row, right(col)}, {down(row), col}, {row, left(col)}}};
 
-  for (auto const& n : neighbours) {
-    if (grid_[index(n[0], n[1])].state == CellState::Empty) {
+  for (auto const& n : complete_neighb) {
+    if (grid_[index(n[0], n[1])].state == chosen_state) {
       result.push_back(index(n[0], n[1]));
     }
   }
@@ -152,7 +157,8 @@ void GridSimulation::evolve() {
 
     if (grid_[j].state == CellState::Prey) {
       // ---------------- CASO PREDA ----------------
-      std::vector<std::size_t> const safe_neighb = empty_neighbours(row, col);
+      std::vector<std::size_t> const safe_neighb =
+          neighbours(row, col, CellState::Empty);
 
       if (safe_neighb.empty()) {
         // nessuna cella libera: la preda resta ferma, ma invecchia comunque
@@ -174,30 +180,18 @@ void GridSimulation::evolve() {
             static_cast<std::size_t>(parameters_.fish_breed_age)) {
           std::size_t const breed_row{chosen / parameters_.width};
           std::size_t const breed_col{chosen % parameters_.width};
-          reproduce(chosen, empty_neighbours(breed_row, breed_col),
+          reproduce(chosen, neighbours(breed_row, breed_col, CellState::Empty),
                     static_cast<std::size_t>(parameters_.fish_breed_age));
         }
       }
 
     } else {
       // ---------------- CASO PREDATORE ----------------
-      std::array<std::array<std::size_t, 2>, 4> const neighbours = {
-          {{up(row), col},
-           {row, right(col)},
-           {down(row), col},
-           {row, left(col)}}};
 
-      std::vector<std::size_t> prey_neighb;
-      std::vector<std::size_t> empty_neighb;
-
-      for (auto const& n : neighbours) {
-        CellState const state = current_cell(n[0], n[1]).state;
-        if (state == CellState::Prey) {
-          prey_neighb.push_back(index(n[0], n[1]));
-        } else if (state == CellState::Empty) {
-          empty_neighb.push_back(index(n[0], n[1]));
-        }
-      }
+      std::vector<std::size_t> prey_neighb =
+          neighbours(row, col, CellState::Prey);
+      std::vector<std::size_t> empty_neighb =
+          neighbours(row, col, CellState::Empty);
 
       std::size_t chosen{j};  // di default resta fermo
 
@@ -235,7 +229,7 @@ void GridSimulation::evolve() {
                  static_cast<std::size_t>(parameters_.sharks_breed_energy)) {
         std::size_t const breed_row{chosen / parameters_.width};
         std::size_t const breed_col{chosen % parameters_.width};
-        reproduce(chosen, empty_neighbours(breed_row, breed_col),
+        reproduce(chosen, neighbours(breed_row, breed_col, CellState::Empty),
                   static_cast<std::size_t>(parameters_.sharks_breed_energy));
       }
     }

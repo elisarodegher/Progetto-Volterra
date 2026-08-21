@@ -117,7 +117,7 @@ void GridSimulation::reproduce(std::size_t index,
   }
 }
 
-// metodo per creare il vicinato vuoto
+// metodo per creare il vicinato con uno stato generico
 std::vector<std::size_t> GridSimulation::neighbours(
     std::size_t row, std::size_t col, CellState chosen_state) const {
   std::vector<std::size_t> result;

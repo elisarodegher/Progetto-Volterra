@@ -55,7 +55,8 @@ void run_grid_simulation() {
   wator::GridSimulation sim(p, seed);
   sim.go();
 
-  // TODO: sim.save_evolution(); sim.save_plot(); -- ancora da implementare
+  sim.save_grid_evolution();
+  sim.save_grid_plot();
 
   auto const& last = sim.history().back();
   std::cout << "\nSimulazione conclusa dopo " << sim.history().size()

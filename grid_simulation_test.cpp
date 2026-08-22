@@ -122,6 +122,7 @@ TEST_CASE("Testing evolve()") {
   auto p = valid_parameters();
   wator::GridSimulation sim(p, 42);
   std::size_t const grid_size = p.width * p.height;
+
   SUBCASE("population never exceeds grid size") {
     for (int i = 0; i < 50; ++i) {
       sim.evolve();
@@ -130,6 +131,12 @@ TEST_CASE("Testing evolve()") {
       CHECK(last.sharks <= grid_size);
       CHECK(last.fish + last.sharks <= grid_size);
     }
+  }
+
+  SUBCASE("a single evolve() adds exactly one history entry") {
+    std::size_t const before = sim.history().size();
+    sim.evolve();
+    CHECK(sim.history().size() == before + 1);
   }
 
   SUBCASE("repeated evolve() does not throw or crash") {
@@ -148,4 +155,20 @@ TEST_CASE("Testing go()") {
 
   // go() deve fermarsi quando la storia raggiunge 'iterations'
   CHECK(sim.history().size() == static_cast<std::size_t>(p.iterations));
+}
+
+TEST_CASE("same seed gives same population history") {
+  auto p = valid_parameters();
+  p.iterations = 10;
+
+  wator::GridSimulation sim1(p, 99);
+  wator::GridSimulation sim2(p, 99);
+
+  sim1.go();
+  sim2.go();
+
+  REQUIRE(sim1.history().size() == sim2.history().size());
+  for (std::size_t i = 0; i < sim1.history().size(); ++i) {
+    CHECK(sim1.history()[i] == sim2.history()[i]);
+  }
 }

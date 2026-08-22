@@ -4,7 +4,7 @@
 #include "grid_simulation.hpp"
 #include "simulation.hpp"
 
-namespace wator {
+namespace {
 
 template <typename T>
 T control_as(std::string const& message) {
@@ -63,11 +63,26 @@ void run_grid_simulation() {
             << last.sharks << " predatori.\n";
 }
 
-}  // namespace wator
+}  // namespace
 
 int main() {
   try {
-   } catch (std::exception const& e) {
+    std::cout << "Quale simulazione vuoi eseguire?\n"
+              << "  1) Modello continuo (equazioni di Lotka-Volterra)\n"
+              << "  2) Modello a griglia (Wa-Tor)\n"
+              << "Scelta: ";
+    int choice{};
+    std::cin >> choice;
+    if (std::cin.fail()) throw std::invalid_argument("Invalid input.");
+
+    if (choice == 1) {
+      run_continuous_simulation();
+    } else if (choice == 2) {
+      run_grid_simulation();
+    } else {
+      throw std::invalid_argument("Invalid choice.");
+    }
+  } catch (std::exception const& e) {
     std::cerr << e.what() << '\n';
     return 1;
   }

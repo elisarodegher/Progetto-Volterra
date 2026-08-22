@@ -28,6 +28,6 @@ if (BUILD_TESTING)
   add_executable(simulation.test simulation.test.cpp simulation.cpp)
   add_test(NAME simulation.test COMMAND simulation.test)
 
-  add_executable(grid_simulation.test grid_simulation.test.cpp grid_simulation.cpp)
+  add_executable(grid_simulation.test grid_simulation_test.cpp grid_simulation.cpp)
   add_test(NAME grid_simulation.test COMMAND grid_simulation.test)
 endif() 

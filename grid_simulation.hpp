@@ -86,6 +86,8 @@ class GridSimulation {
   // ------------------------------------evolution----------------------------------------------------------------
   void evolve();
   void go();
+  void save_grid_evolution();
+  void save_grid_plot();
 };
 
 //----------------------- operatori di confronto--------------------------

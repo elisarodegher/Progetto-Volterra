@@ -2,6 +2,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
 
 namespace wator {
 
@@ -248,6 +252,58 @@ void GridSimulation::go() {
       break;
     }
   }
+}
+
+// SAVE_EVOLUTION()
+void GridSimulation::save_grid_evolution() {
+  std::ofstream outfile{"GRID_EVOLUTION.csv"};
+  outfile << "step\tfish\tsharks\n";
+  std::size_t step{0};
+  for (auto const& population : history_) {
+    outfile << step << '\t' << population.fish << '\t' << population.sharks
+            << '\n';
+    ++step;
+  }
+}
+
+// SAVE_PLOT()
+void GridSimulation::save_grid_plot() {
+  std::ofstream data_file{".tmp_grid.csv"};
+  std::size_t step{0};
+
+  for (auto const& population : history_) {
+    data_file << step << '\t' << population.fish << '\t' << population.sharks
+              << '\n';
+    ++step;
+  }
+
+  data_file.close();
+
+  std::ofstream gp_script{".tmp_grid.gp"};
+  gp_script
+      << "set terminal svg size 1000,600 font 'Arial,14' background '#99d6e1'\n"
+      << "set output 'GRID_PLOT.svg'\n"
+      << "set title 'WA-TOR POPULATION'\n"
+      << "set xlabel 'STEP'\n"
+      << "set ylabel 'INDIVIDUALS'\n"
+      << "set xrange [0:" << step - 1 << "]\n"
+      << "set autoscale y\n"
+      << "set grid\n"
+      << "plot '.tmp_grid.csv' using 1:2 with lines lw 2 lc rgb 'green' "
+         "title 'FISH', "
+      << "'.tmp_grid.csv' using 1:3 with lines lw 2 lc rgb 'blue' title "
+         "'SHARKS'\n";
+
+  gp_script.close();
+
+  int const check = std::system("gnuplot .tmp_grid.gp");
+  if (check != 0) {
+    std::cerr << "gnuplot failed\n";
+  }
+  std::remove(".tmp_grid.gp");
+  std::remove(".tmp_grid.csv");
+
+  std::cout << "\nGrid plot and temporal evolution of the simulation saved.\n";
 }
 
 // EXTERNAL FUNCTIONS

@@ -131,4 +131,13 @@ TEST_CASE("Testing methods") {
       CHECK(evolution[i].H == doctest::Approx(expected[i].H).epsilon(1e-10));
     }
   }
+
+  SUBCASE("Testing H stability (integrale primo)") {
+    sim.go();
+    auto const& evolution = sim.evolution();
+    double const H0 = evolution.front().H;
+    for (auto const& s : evolution) {
+      CHECK(s.H == doctest::Approx(H0).epsilon(1e-3));
+    }
+  }
 }

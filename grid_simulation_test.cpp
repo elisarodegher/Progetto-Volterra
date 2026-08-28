@@ -96,26 +96,15 @@ TEST_CASE("Testing initialization") {
   CHECK(sim.height() == p.height);
   CHECK(sim.iterations() == static_cast<std::size_t>(p.iterations));
 
-  // la storia parte con un solo elemento (lo stato iniziale)
+  // checking if history starts with a singular element
   REQUIRE(sim.history().size() == std::size_t(1));
 
   auto const& initial = sim.history().front();
   std::size_t const grid_size = p.width * p.height;
 
-  // le popolazioni iniziali non possono mai superare la dimensione della
-  // griglia, ne' essere negative (garantito dal tipo std::size_t)
   CHECK(initial.fish <= grid_size);
   CHECK(initial.sharks <= grid_size);
   CHECK(initial.fish + initial.sharks <= grid_size);
-
-  // con densita' strettamente positive, ci si aspetta qualche individuo di
-  // entrambe le specie su una griglia di queste dimensioni (non e' garantito
-  // in senso assoluto, ma con 100 celle e densita' 0.3/0.1 la probabilita'
-  // di zero individui e' trascurabile), per ora metto nei commenti
-  /*
-
-   CHECK(initial.fish > 0);
-   CHECK(initial.sharks > 0); */
 }
 
 TEST_CASE("Testing evolve()") {
@@ -150,13 +139,11 @@ TEST_CASE("Testing go()") {
   auto p = valid_parameters();
   p.iterations = 15;
   wator::GridSimulation sim(p, 7);
-
   sim.go();
-
-  // go() deve fermarsi quando la storia raggiunge 'iterations'
   CHECK(sim.history().size() == static_cast<std::size_t>(p.iterations));
 }
 
+// testing determinism
 TEST_CASE("same seed gives same population history") {
   auto p = valid_parameters();
   p.iterations = 10;

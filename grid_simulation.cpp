@@ -9,7 +9,7 @@
 
 namespace wator {
 
-// COSTRUTTORE
+//-------------------------CONSTRUCTOR-------------------------------
 
 GridSimulation::GridSimulation(GridParameters p, unsigned seed)
     : parameters_(p), rng_(seed) {
@@ -22,10 +22,12 @@ GridSimulation::GridSimulation(GridParameters p, unsigned seed)
     throw std::invalid_argument("Invalid input.");
   }
 
+  // resizing the grid
   grid_.resize(p.width * p.height);
 
   std::uniform_real_distribution<double> dist(0.0, 1.0);
 
+  // filling the grid
   for (auto& cell : grid_) {
     double const r = dist(rng_);
 
@@ -36,13 +38,14 @@ GridSimulation::GridSimulation(GridParameters p, unsigned seed)
       cell.energy = parameters_.sharks_initial_energy;
     }
   }
+
+  // updating population
   history_.push_back(get_population());
 };
 
-// ---------------METODI DELLA CLASSE------------------
+//--------------------------PRIVATE FUNCTIONS-----------------------
 
-// ---------------PRIVATI------------------------------
-
+// get_population()
 Population GridSimulation::get_population() const {
   Population population;
 
@@ -56,16 +59,17 @@ Population GridSimulation::get_population() const {
   return population;
 }
 
-// UP DOWN LEFT RIGHT
-
+// index()
 std::size_t GridSimulation::index(std::size_t row, std::size_t col) const {
   return row * parameters_.width + col;
 }
 
+// current_cell()
 Cell& GridSimulation::current_cell(size_t row, size_t column) {
   return grid_[index(row, column)];
 };
 
+// up(), down(), left(), right()
 std::size_t GridSimulation::up(std::size_t row) const {
   return (row + parameters_.height - 1) % parameters_.height;
 }
@@ -82,8 +86,22 @@ std::size_t GridSimulation::right(std::size_t col) const {
   return (col + 1) % parameters_.width;
 }
 
-// METODO REPRODUCE
+// neighbours()
+std::vector<std::size_t> GridSimulation::neighbours(
+    std::size_t row, std::size_t col, CellState chosen_state) const {
+  std::vector<std::size_t> result;
+  std::array<std::array<std::size_t, 2>, 4> complete_neighb = {
+      {{up(row), col}, {row, right(col)}, {down(row), col}, {row, left(col)}}};
 
+  for (auto const& n : complete_neighb) {
+    if (grid_[index(n[0], n[1])].state == chosen_state) {
+      result.push_back(index(n[0], n[1]));
+    }
+  }
+  return result;
+}
+
+// reproduce()
 void GridSimulation::reproduce(std::size_t index,
                                std::vector<std::size_t> const& free_neighb,
                                std::size_t max) {
@@ -121,25 +139,9 @@ void GridSimulation::reproduce(std::size_t index,
   }
 }
 
-// metodo per creare il vicinato con uno stato generico
-std::vector<std::size_t> GridSimulation::neighbours(
-    std::size_t row, std::size_t col, CellState chosen_state) const {
-  std::vector<std::size_t> result;
-  std::array<std::array<std::size_t, 2>, 4> complete_neighb = {
-      {{up(row), col}, {row, right(col)}, {down(row), col}, {row, left(col)}}};
+//--------------------------PUBLIC FUNCTIONS-----------------------
 
-  for (auto const& n : complete_neighb) {
-    if (grid_[index(n[0], n[1])].state == chosen_state) {
-      result.push_back(index(n[0], n[1]));
-    }
-  }
-  return result;
-}
-
-// PUBBLICI serve fare evolve e go
-
-// EVOLVE
-
+// evolve()
 void GridSimulation::evolve() {
   std::vector<std::size_t>
       occupied;  // contiene gli indici delle caselle occupate ex (1,3,4)
@@ -151,7 +153,6 @@ void GridSimulation::evolve() {
   std::vector<bool> already_moved(grid_.size(), false);
 
   for (std::size_t j : occupied) {
-    // forse controllo di cellstate empty è ridondante??
     if (grid_[j].state == CellState::Empty || already_moved[j])
       continue;  // se la cella è vuota ho ha subito un cambiamento, salta
                  // l'iterazione
@@ -241,8 +242,7 @@ void GridSimulation::evolve() {
   history_.push_back(get_population());
 }
 
-// GO
-
+// go()
 void GridSimulation::go() {
   while (history_.size() < parameters_.iterations) {
     try {
@@ -254,7 +254,7 @@ void GridSimulation::go() {
   }
 }
 
-// SAVE_EVOLUTION()
+// save_evolution()
 void GridSimulation::save_grid_evolution() {
   std::ofstream outfile{"GRID_EVOLUTION.csv"};
   outfile << "step\tfish\tsharks\n";
@@ -266,7 +266,7 @@ void GridSimulation::save_grid_evolution() {
   }
 }
 
-// SAVE_PLOT()
+// save_plot()
 void GridSimulation::save_grid_plot() {
   std::ofstream data_file{".tmp_grid.csv"};
   std::size_t step{0};
@@ -306,15 +306,19 @@ void GridSimulation::save_grid_plot() {
   std::cout << "\nGrid plot and temporal evolution of the simulation saved.\n";
 }
 
-// EXTERNAL FUNCTIONS
+//--------------------EXTERNAL FUNCTIONS------------------------
+
+// operator == Cell
 bool operator==(Cell const& a, Cell const& b) {
   return a.state == b.state && a.energy == b.energy && a.age == b.age;
 }
 
+// operator == Population
 bool operator==(Population const& a, Population const& b) {
   return a.fish == b.fish && a.sharks == b.sharks;
 }
 
+// operator == GridParameters
 bool operator==(GridParameters const& a, GridParameters const& b) {
   return a.width == b.width && a.height == b.height &&
          a.iterations == b.iterations && a.fish_density == b.fish_density &&

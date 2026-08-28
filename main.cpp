@@ -13,7 +13,8 @@ T control_as(std::string const& message) {
   return static_cast<T>(v);
 }
 
-void run_continuous_simulation() {
+// Lotka-Volterra simulation function
+void run_L_V_simulation() {
   volterra::Parameters p;
   p.a = volterra::control("Enter prey birth rate: ");
   p.b = volterra::control("Enter prey death rate: ");
@@ -32,6 +33,7 @@ void run_continuous_simulation() {
   sim.save_plot();
 }
 
+// Wa_Tor simulation function
 void run_grid_simulation() {
   wator::GridParameters p;
   p.width = control_as<std::size_t>("Enter grid width: ");
@@ -66,6 +68,8 @@ void run_grid_simulation() {
 
 }  // namespace
 
+// main function
+
 int main() {
   try {
     std::cout << "Quale simulazione vuoi eseguire?\n"
@@ -77,7 +81,7 @@ int main() {
     if (std::cin.fail()) throw std::invalid_argument("Invalid input.");
 
     if (choice == 1) {
-      run_continuous_simulation();
+      run_L_V_simulation();
     } else if (choice == 2) {
       run_grid_simulation();
     } else {
